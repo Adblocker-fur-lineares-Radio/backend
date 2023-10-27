@@ -1,28 +1,29 @@
-CREATE TABLE "radios" (
-  "id" integer PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS "radios" (
+  "id" SERIAL PRIMARY KEY,
   "name" text,
   "status_id" integer,
   "currently_playing" text,
+  "current_interpret" text,
   "stream_url" text,
   "logo_url" text
 );
 
-CREATE TABLE "radio_states" (
+CREATE TABLE IF NOT EXISTS "radio_states" (
   "id" integer PRIMARY KEY,
   "label" text
 );
 
-CREATE TABLE "radio_genres" (
+CREATE TABLE IF NOT EXISTS "radio_genres" (
   "radio_id" integer,
   "genre_id" integer
 );
 
-CREATE TABLE "genres" (
+CREATE TABLE IF NOT EXISTS "genres" (
   "id" integer PRIMARY KEY,
   "name" text
 );
 
-CREATE TABLE "connections" (
+CREATE TABLE IF NOT EXISTS "connections" (
   "id" integer PRIMARY KEY,
   "search_query" text,
   "search_without_ads" bool,
@@ -33,22 +34,22 @@ CREATE TABLE "connections" (
   "preference_ad" bool
 );
 
-CREATE TABLE "connection_preferred_radios" (
+CREATE TABLE IF NOT EXISTS "connection_preferred_radios" (
   "radio_id" integer,
   "connection_id" integer
 );
 
-CREATE TABLE "connection_preferred_genres" (
+CREATE TABLE IF NOT EXISTS "connection_preferred_genres" (
   "connection_id" integer,
   "genre_id" integer
 );
 
-CREATE TABLE "connection_search_favorites" (
+CREATE TABLE IF NOT EXISTS "connection_search_favorites" (
   "radio_id" integer,
   "connection_id" integer
 );
 
-CREATE TABLE "radio_ad_time" (
+CREATE TABLE IF NOT EXISTS "radio_ad_time" (
   "radio_id" integer,
   "ad_start_time" timestamp
 );
