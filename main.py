@@ -1,5 +1,16 @@
 import vlc
 import time
+import asyncio
+from websockets.sync.client import connect
+
+def hello():
+    with connect("ws://localhost:8765") as websocket:
+        websocket.send("Hello world!")
+        message = websocket.recv()
+        print(f"Received: {message}")
+
+
+
 
 def play():
     url = 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de'
@@ -27,12 +38,12 @@ def play():
             if aktellerPlayer == player:
                 player.stop()
                 aktellerPlayer = player2
-                time.sleep(5)
+                time.sleep(2)
                 player2.play()
             else:
                 player2.stop()
                 aktellerPlayer = player
-                time.sleep(5)
+                time.sleep(2)
                 player.play()
 
 
