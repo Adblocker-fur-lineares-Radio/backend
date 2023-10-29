@@ -78,7 +78,7 @@ def StartClient():
     player.play()
 
     while 1:
-        check = CheckNeededUpdate(ws)
+        check = CheckPollingUpdate(ws)
         if check == 0:
             print("loop")
         else:
