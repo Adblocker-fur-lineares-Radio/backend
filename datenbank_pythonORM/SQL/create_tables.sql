@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS "connection_search_favorites" (
 
 CREATE TABLE IF NOT EXISTS "radio_ad_time" (
   "radio_id" integer,
-  "ad_start_time" timestamp
+  "ad_start_time" timestamp,
+  "ad_end_time" timestamp
 );
 
 ALTER TABLE "radios" ADD FOREIGN KEY ("status_id") REFERENCES "radio_states" ("id");
