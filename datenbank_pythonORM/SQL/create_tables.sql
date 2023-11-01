@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS "radio_states" (
 
 CREATE TABLE IF NOT EXISTS "radio_genres" (
   "radio_id" integer,
-  "genre_id" integer
+  "genre_id" integer,
+    PRIMARY KEY ("radio_id", "genre_id")
 );
 
 CREATE TABLE IF NOT EXISTS "genres" (
@@ -36,23 +37,27 @@ CREATE TABLE IF NOT EXISTS "connections" (
 
 CREATE TABLE IF NOT EXISTS "connection_preferred_radios" (
   "radio_id" integer,
-  "connection_id" integer
+  "connection_id" integer,
+    PRIMARY KEY ("radio_id", "connection_id")
 );
 
 CREATE TABLE IF NOT EXISTS "connection_preferred_genres" (
   "connection_id" integer,
-  "genre_id" integer
+  "genre_id" integer,
+    PRIMARY KEY ("connection_id", "genre_id")
 );
 
 CREATE TABLE IF NOT EXISTS "connection_search_favorites" (
   "radio_id" integer,
-  "connection_id" integer
+  "connection_id" integer,
+    PRIMARY KEY ("radio_id", "connection_id")
 );
 
 CREATE TABLE IF NOT EXISTS "radio_ad_time" (
   "radio_id" integer,
   "ad_start_time" timestamp,
-  "ad_end_time" timestamp
+  "ad_end_time" timestamp,
+    PRIMARY KEY ("radio_id", "ad_start_time", "ad_end_time")
 );
 
 ALTER TABLE "radios" ADD FOREIGN KEY ("status_id") REFERENCES "radio_states" ("id");

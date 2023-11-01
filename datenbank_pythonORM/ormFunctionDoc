@@ -1,0 +1,23 @@
+search_radio_by_id(radio_id):
+    ->returned eine Liste mit dem Radio bei übereinstimmender radio_id, wenn nicht gefunden, leere liste
+
+search_radio_by_id_and_genre(radio_ids, genre_ids):
+    ->returned eine Liste mit dem Radio, das keine Werbung hat und die höchste radio prio hat (absteigend),
+     wenn keins da, wird das erste radio gesucht welches mit dem priorisierten genre übereinstimmt (absteigend),
+     wenn keins gefunden, wird leere Liste returned
+
+insert_into_connection_preferred_radios(radio_ids, connection_id):
+    ->fügt die prefered radio daten für die momentante connection hinzu
+
+insert_into_connection_search_favorites(radio_ids, connection_id):
+    ->fügt die favoritisierten radios für die momentante connection hinzu
+
+insert_into_connection_preferred_genres(genre_ids, connection_id):
+    ->fügt die prefered genres für die momentante connection hinzu
+
+delete_connection_from_db(connection_id):
+    ->löscht alle connection daten für die spezifizierte connection wieder aus der DB
+
+
+ !!!Alle Funktionen sind mit mehreren Werten getestet, sind aber nicht sicher gegen SQL-Injections!
+ (Die eingehenden Daten kommen vom Frontend, also sicher)!!
