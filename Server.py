@@ -2,28 +2,45 @@ import asyncio
 import websockets
 import json
 
+change = 0
 
-def stream_guidance():
+
+def stream_guidance_wdr():
     return json.dumps({
         'type': 'stream_guidance',
-        'radio': 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator',
+        'radio': 'https://wdr-wdr2-rheinruhr.icecastssl.wdr.de/wdr/wdr2/rheinruhr/mp3/56/stream.mp3?aggregator=surfmusik-de&1697723004',
+        'buffer': 0
+    })
+
+
+def stream_guidance_1live():
+    return json.dumps({
+        'type': 'stream_guidance',
+        'radio': 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
         'buffer': 0
     })
 
 
 async def hello(websocket):
-    name = await websocket.recv()
-    print(f'Server Received: {name}')
-
-    greeting = f'Hello {name}!'
-    await websocket.send(greeting)
-    print(f'Server Sent: {greeting}')
-
+    global change
     streamRequest = await websocket.recv()
     print(f'Server Received: {streamRequest}')
 
-    await websocket.send(stream_guidance())
-    print(f'Server Sent: {stream_guidance()}')
+    await websocket.send(stream_guidance_wdr())
+    print(f'Server Sent: {stream_guidance_wdr()}')
+
+    count = 0
+    while True:
+        count = count + 1
+        if count == 1000000:
+            change = 1
+
+        if change == 0:
+            await websocket.send("0")
+        else:
+            await websocket.send(stream_guidance_1live())
+            print(f'Server Sent: {stream_guidance_1live()}')
+            change = 0
 
 
 async def main():

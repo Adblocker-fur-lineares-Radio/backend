@@ -4,13 +4,8 @@ import asyncio
 import websockets
 
 
-async def CheckPollingUpdate():
-    async with websockets.connect("ws://localhost:1234") as ws:
-        check = await ws.recv()
-        if check:
-            return check
-        else:
-            return 0
+def CheckPollingUpdate(message):
+    print(message)
 
 
 async def NeededResponse():
@@ -51,24 +46,12 @@ def openJson(input2):
     return json.loads(input2)
 
 
-def playRadio(current_stream):
-    instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
-    player = instance.media_player_new()
-    media = instance.media_new(current_stream)
-    player.set_media(media)
-    player.play()
-    while 1:
-        pass
+
+
 
 
 async def StartClient():
     async with websockets.connect("ws://localhost:1234") as ws:
-        name = input("What's your name? ")
-        await ws.send(name)
-        print(f'Client sent: {name}')
-
-        greeting = await ws.recv()
-        print(f"Client received: {greeting}")
 
         await ws.send(stream_request())
         print(f'Client sent: {stream_request()}')
@@ -79,7 +62,25 @@ async def StartClient():
         data = openJson(stream_guidance)
         current_stream = data["radio"]
 
-        playRadio(current_stream)
+        instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
+        player = instance.media_player_new()
+        media = instance.media_new(current_stream)
+        player.set_media(media)
+        player.play()
+
+        while True:
+            msg = await ws.recv()
+            if msg != "0":
+                print()
+                print(f"Client received: {msg}")
+                data2 = openJson(msg)
+                current_stream2 = data2["radio"]
+                player.stop()
+                media = instance.media_new(current_stream2)
+                player.set_media(media)
+                player.play()
+
+
 
 
 if __name__ == '__main__':
