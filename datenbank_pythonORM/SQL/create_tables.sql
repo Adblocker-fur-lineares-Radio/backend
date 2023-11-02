@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS "genres" (
 );
 
 CREATE TABLE IF NOT EXISTS "connections" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "search_query" text,
   "search_without_ads" bool,
   "search_remaining_update" integer,
@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS "radio_ad_time" (
   "radio_id" integer,
   "ad_start_time" timestamp,
   "ad_end_time" timestamp,
+    "ad_transmission_start" timestamp,
+    "ad_transmission_end" timestamp,
     PRIMARY KEY ("radio_id", "ad_start_time", "ad_end_time")
 );
 

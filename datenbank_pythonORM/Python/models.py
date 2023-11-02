@@ -13,7 +13,7 @@ class Base(DeclarativeBase):
 class Radio(Base):
     __tablename__ = 'radios'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(Text)
     status_id: Mapped[str] = mapped_column(Text)
     currently_playing: Mapped[str] = mapped_column(Text)
@@ -42,6 +42,8 @@ class RadioAdTime(Base):
     radio_id: Mapped[int] = mapped_column(ForeignKey("radios.id"), primary_key=True)
     ad_start_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, primary_key=True)
     ad_end_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, primary_key=True)
+    ad_transmission_start: Mapped[datetime.datetime] = mapped_column(TIMESTAMP)
+    ad_transmission_end: Mapped[datetime.datetime] = mapped_column(TIMESTAMP)
 
 
 class Genres(Base):
@@ -54,7 +56,7 @@ class Genres(Base):
 class Connections(Base):
     __tablename__ = 'connections'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     search_query: Mapped[str] = mapped_column(Text)
     search_without_ads: Mapped[bool] = mapped_column(Boolean)
     search_remaining_update: Mapped[int] = mapped_column(Integer)

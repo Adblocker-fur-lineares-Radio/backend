@@ -1,23 +1,49 @@
-search_radio_by_id(radio_id):
-    ->returned eine Liste mit dem Radio bei übereinstimmender radio_id, wenn nicht gefunden, leere liste
+Funktionen die mit get_ starten sind Selects
+Funktionen die mit insert_ starten sind Inserts
+Funktionen die mit delete_ starten sind Deletes
 
-search_radio_by_id_and_genre(radio_ids, genre_ids):
-    ->returned eine Liste mit dem Radio, das keine Werbung hat und die höchste radio prio hat (absteigend),
-     wenn keins da, wird das erste radio gesucht welches mit dem priorisierten genre übereinstimmt (absteigend),
-     wenn keins gefunden, wird leere Liste returned
+
+
+
+get_radio_by_id(radio_id):
+    Queries DB for radio by specified id
+
+get_radio_by_id_and_genre(radio_ids, genre_ids):
+    Tries to match a radio from the preferred list to a radio that does not play ads right now,
+    if none exist, try to find a radio that matches with the most preferred genre, if none exists
+    return an empty list
+
+get_radio_by_query(search_query, search_without_ads):
+    Queries DB for radioname from query
+
+get_preferred_radios(connection_id):
+     Queries DB for preferred Radios from a connection
+
+get_preferred_genres(connection_id):
+    Queries DB for preferred Genres from a connection
+
+get_search_favorites(connection_id):
+    Queries DB for search favorites from a Connection
+
+get_connection(connection_id):
+    Queries DB for specified connection
+
+insert_new_connection(search_query, search_without_ads, search_remaining_update, preference_music,
+                      preference_talk, preference_news, preference_ad):
+    Inserts new connection into DB
 
 insert_into_connection_preferred_radios(radio_ids, connection_id):
-    ->fügt die prefered radio daten für die momentante connection hinzu
+    Inserts the radio_ids and connection id in the connection_preferred_radios table,
+    make sure to delete old values for connection before calling this again with same connection!!!
 
 insert_into_connection_search_favorites(radio_ids, connection_id):
-    ->fügt die favoritisierten radios für die momentante connection hinzu
+    Inserts the radio_ids and connection id in the connection_search_favorites table,
+    make sure to delete old values for connection before calling this again with same connection!!!
 
 insert_into_connection_preferred_genres(genre_ids, connection_id):
-    ->fügt die prefered genres für die momentante connection hinzu
+    Inserts the genre_ids and connection id in the connection_preferred_genres table,
+    make sure to delete old values for connection before calling this again wtih same connection!!!
 
 delete_connection_from_db(connection_id):
-    ->löscht alle connection daten für die spezifizierte connection wieder aus der DB
-
-
- !!!Alle Funktionen sind mit mehreren Werten getestet, sind aber nicht sicher gegen SQL-Injections!
- (Die eingehenden Daten kommen vom Frontend, also sicher)!!
+     Removes all entries from "connections", "connection_search_favorites", "connection_preferred_radios",
+    "connection_preferred_genres", entries with specified connection_od
