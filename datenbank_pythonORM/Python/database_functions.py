@@ -1,13 +1,10 @@
-import psycopg
 import os
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
 from models import *
-import array
-from inspect import getmembers
-from pprint import pprint
+
 
 # load your local .env file with db connection of format "postgresql+psycopg://username:password@hostname(ip):port"
 load_dotenv()
@@ -121,4 +118,3 @@ def delete_connection_from_db(connection_id):
     session.commit()
 
 
-delete_connection_from_db(1)
