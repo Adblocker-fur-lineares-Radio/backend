@@ -2,27 +2,38 @@ import asyncio
 import websockets
 import json
 
-change = 0
-
 
 def stream_guidance_wdr():
+    """
+    Example of stream_guidance (Look Google Drive SeverAPI)
+    @return: Json-String
+    """
     return json.dumps({
         'type': 'stream_guidance',
-        'radio': 'https://wdr-wdr2-rheinruhr.icecastssl.wdr.de/wdr/wdr2/rheinruhr/mp3/56/stream.mp3?aggregator=surfmusik-de&1697723004',
-        'buffer': 0
+        'radio': 'https://wdr-wdr2-rheinruhr.icecastssl.wdr.de/wdr/wdr2/rheinruhr/mp3/56/stream.mp3?aggregator'
+                 '=surfmusik-de&1697723004',
+        'buffer': 10
     })
 
 
 def stream_guidance_1live():
+    """
+    2. Example of stream_guidance (Look Google Drive SeverAPI)
+    @return: Json-String
+    """
     return json.dumps({
         'type': 'stream_guidance',
         'radio': 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
-        'buffer': 0
+        'buffer': 10
     })
 
 
 async def hello(websocket):
-    global change
+    """
+    Await request -> send Example -> permanently sending something to stable connection
+    @param websocket: Server connection
+    @return: None
+    """
     streamRequest = await websocket.recv()
     print(f'Server Received: {streamRequest}')
 
@@ -31,16 +42,7 @@ async def hello(websocket):
 
     count = 0
     while True:
-        count = count + 1
-        if count == 1000000:
-            change = 1
-
-        if change == 0:
-            await websocket.send("0")
-        else:
-            await websocket.send(stream_guidance_1live())
-            print(f'Server Sent: {stream_guidance_1live()}')
-            change = 0
+        await websocket.send("0")
 
 
 async def main():
@@ -50,5 +52,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    # url1 = 'https://wdr-wdr2-rheinruhr.icecastssl.wdr.de/wdr/wdr2/rheinruhr/mp3/56/stream.mp3?aggregator=surfmusik-de&1697723004'
-    # url2 = 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de'
