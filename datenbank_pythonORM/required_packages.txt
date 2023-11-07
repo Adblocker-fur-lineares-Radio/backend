@@ -1,0 +1,17 @@
+SQLAlchemy (Python ORM Tool)
+
+SQLAlchemy Version 2.0.22
+with Python Version 3.12.0
+
+install with pip:
+pip install SQLAlchemy
+
+
+Psycopg3 (PostgreSQL Driver, "adapter" zwischen PostgreSQL und Python)
+
+install with pip:
+pip install psycopg[binary]
+
+(for .env file support)
+(install with pip:
+(pip install python-dotenv)
