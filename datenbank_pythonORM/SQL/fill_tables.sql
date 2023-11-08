@@ -10,7 +10,7 @@ INSERT INTO radio_states(id, label)
 VALUES(3, 'Nachrichten');
 
 INSERT INTO radio_states(id, label)
-VALUES(4, NULL);
+VALUES(4, NULL );
 
 
 -- Fill "genres" table

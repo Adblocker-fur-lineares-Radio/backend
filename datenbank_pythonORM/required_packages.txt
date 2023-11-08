@@ -15,3 +15,5 @@ pip install psycopg[binary]
 (for .env file support)
 (install with pip:
 (pip install python-dotenv)
+
+

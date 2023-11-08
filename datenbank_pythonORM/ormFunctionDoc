@@ -13,6 +13,9 @@ get_radio_by_id_and_genre(radio_ids, genre_ids):
     if none exist, try to find a radio that matches with the most preferred genre, if none exists
     return an empty list
 
+get_radio_by_connection(connection_id):
+    Returns a Joined table containing the preferred radios with the Connections
+
 get_radio_by_query(search_query, search_without_ads):
     Queries DB for radioname from query
 
@@ -28,9 +31,9 @@ get_search_favorites(connection_id):
 get_connection(connection_id):
     Queries DB for specified connection
 
-insert_new_connection(search_query, search_without_ads, search_remaining_update, preference_music,
+insert_new_connection(search_query, current_radio_id, search_without_ads, search_remaining_update, preference_music,
                       preference_talk, preference_news, preference_ad):
-    Inserts new connection into DB
+    Inserts new connection into DB and returns the PK of the connection
 
 insert_into_connection_preferred_radios(radio_ids, connection_id):
     Inserts the radio_ids and connection id in the connection_preferred_radios table,
@@ -47,3 +50,6 @@ insert_into_connection_preferred_genres(genre_ids, connection_id):
 delete_connection_from_db(connection_id):
      Removes all entries from "connections", "connection_search_favorites", "connection_preferred_radios",
     "connection_preferred_genres", entries with specified connection_od
+
+update_search_remaining_updates(connection_id):
+    decrements the search_remaining_updates by one if its > 0
