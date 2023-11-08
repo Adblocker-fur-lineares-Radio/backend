@@ -4,18 +4,10 @@ from sqlalchemy.orm import *
 from dotenv import load_dotenv
 from sqlalchemy.orm import sessionmaker
 from models import *
-
-# load your local .env file with db connection of format "postgresql+psycopg://username:password@hostname(ip):port"
-load_dotenv()
-
-MY_ENV_VAR = os.getenv('POSTGRESQL_DB_CONNECTION')
-
-# connect to the db
-engine = create_engine(MY_ENV_VAR, echo=True)
-engine.connect()
+import create_and_connect_to_db
 
 # create session with the db
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=create_and_connect_to_db.engine)
 session = Session()
 
 
@@ -49,12 +41,23 @@ def get_radio_by_id_and_genre(radio_ids, genre_ids):
 
     for genre_id in genre_ids:
         stmt = select(Radio, RadioGenres.genre_id).join(RadioGenres, Radio.id == RadioGenres.radio_id).where(
-            RadioGenres.genre_id == genre_id).where(Radio.status_id != 1)
+            RadioGenres.genre_id == genre_id).where(Radio.status_id != 1).limit(1)
         result = session.execute(stmt).all()
-        if len(result) != 0:
-            return result[0]
 
     result = []
+    return result
+
+
+def get_radio_by_connection(connection_id):
+    """
+    
+    @param connection_id: 
+    @return: a joined table of the radios and connections
+    """
+    stmt = select(Radio, Connections).join(ConnectionPreferredRadios,
+                                           Radio.id == ConnectionPreferredRadios.radio_id).join(Connections,
+                                                                                                ConnectionPreferredRadios.connection_id == Connections.id)
+    result = session.execute(stmt).all()
     return result
 
 
@@ -113,25 +116,36 @@ def get_connection(connection_id):
     return session.execute(stmt).all()
 
 
-def insert_new_connection(search_query, search_without_ads, search_remaining_update, preference_music,
+def insert_new_connection(search_query, current_radio_id, search_without_ads, search_remaining_update, preference_music,
                           preference_talk, preference_news, preference_ad):
     """
     Inserts new connection into DB
     Adds a new connection entry to the db
     :param search_query:    specified search query
+    :param current_radio_id: the currently listened to radio(can be null)
     :param search_without_ads:  specifies if search should only return radios without ads
     :param search_remaining_update: specifies how many updates should be sent
     :param preference_music: specifies if music is preferred
     :param preference_talk: specifies if talk is preferred
     :param preference_news: specifies if news is preferred
     :param preference_ad: specifies if ads are preferred
-    :return: -
+    :return: the inserted id
+
     """
-    session.execute(insert(Connections), [{"search_query": search_query, "search_without_ads": search_without_ads,
-                                           "search_remaining_update": search_remaining_update,
-                                           "preference_music": preference_music, "preference_talk": preference_talk,
-                                           "preference_news": preference_news, "preference_ad": preference_ad}])
+    stmt = (insert(Connections).values(
+        search_query=search_query,
+        current_radio_id=current_radio_id,
+        search_without_ads=search_without_ads,
+        search_remaining_update=search_remaining_update,
+        preference_music=preference_music,
+        preference_talk=preference_talk,
+        preference_news=preference_news,
+        preference_ad=preference_ad
+    ).returning(Connections.id))
+    result = session.execute(stmt)
+    connectionid = result.scalar()
     session.commit()
+    return connectionid
 
 
 def insert_into_connection_preferred_radios(radio_ids, connection_id):
@@ -191,3 +205,19 @@ def delete_connection_from_db(connection_id):
     stmt = delete(Connections).where(Connections.id == connection_id)
     session.execute(stmt)
     session.commit()
+
+
+def update_search_remaining_updates(connection_id):
+    stmt = (
+        update(Connections).where(Connections.id == connection_id).where(
+            Connections.search_remaining_update > 0).values(
+            search_remaining_update=Connections.search_remaining_update - 1).returning(
+            Connections.search_remaining_update)
+    )
+    result = session.execute(stmt)
+    session.commit()
+    search_remaining_updates = result.scalar()
+    return search_remaining_updates
+
+
+print(update_search_remaining_updates(1))

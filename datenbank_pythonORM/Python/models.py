@@ -1,9 +1,13 @@
 from sqlalchemy import Integer, ForeignKey, Text, TIMESTAMP, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.orm import relationship
+from sqlalchemy import MetaData
+from typing import Optional
+
+
+
 import datetime
 
-
+metadata_obj = MetaData()
 class Base(DeclarativeBase):
     type_annotation_map = {
         datetime.datetime: TIMESTAMP(timezone=False)
@@ -13,11 +17,11 @@ class Base(DeclarativeBase):
 class Radio(Base):
     __tablename__ = 'radios'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(Text)
     status_id: Mapped[str] = mapped_column(Text)
-    currently_playing: Mapped[str] = mapped_column(Text)
-    current_interpret: Mapped[str] = mapped_column(Text)
+    currently_playing: Mapped[Optional[str]] = mapped_column(Text)
+    current_interpret: Mapped[Optional[str]] = mapped_column(Text)
     stream_url: Mapped[str] = mapped_column(Text)
     logo_url: Mapped[str] = mapped_column(Text)
 
@@ -26,7 +30,7 @@ class RadioStates(Base):
     __tablename__ = 'radio_states'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    label: Mapped[str] = mapped_column(Text)
+    label: Mapped[Optional[str]] = mapped_column(Text)
 
 
 class RadioGenres(Base):
@@ -50,7 +54,7 @@ class Genres(Base):
     __tablename__ = 'genres'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(Text)
+    name: Mapped[Optional[str]] = mapped_column(Text)
 
 
 class Connections(Base):
@@ -58,6 +62,7 @@ class Connections(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     search_query: Mapped[str] = mapped_column(Text)
+    current_radio_id: Mapped[Optional[int]] = mapped_column(Integer)
     search_without_ads: Mapped[bool] = mapped_column(Boolean)
     search_remaining_update: Mapped[int] = mapped_column(Integer)
     preference_music: Mapped[bool] = mapped_column(Boolean)
