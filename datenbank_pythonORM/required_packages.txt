@@ -17,3 +17,7 @@ pip install psycopg[binary]
 (pip install python-dotenv)
 
 
+/////
+pip install SQLAlchemy
+pip install psycopg[binary]
+pip install python-dotenv

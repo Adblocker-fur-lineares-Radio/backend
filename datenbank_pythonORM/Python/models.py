@@ -1,20 +1,24 @@
+from dataclasses import dataclass
+
 from sqlalchemy import Integer, ForeignKey, Text, TIMESTAMP, Boolean
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import MetaData
 from typing import Optional
-
-
 
 import datetime
 
 metadata_obj = MetaData()
+
+
+@dataclass
 class Base(DeclarativeBase):
     type_annotation_map = {
         datetime.datetime: TIMESTAMP(timezone=False)
     }
 
 
-class Radio(Base):
+@dataclass
+class Radios(Base):
     __tablename__ = 'radios'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -26,6 +30,7 @@ class Radio(Base):
     logo_url: Mapped[str] = mapped_column(Text)
 
 
+@dataclass
 class RadioStates(Base):
     __tablename__ = 'radio_states'
 
@@ -33,6 +38,7 @@ class RadioStates(Base):
     label: Mapped[Optional[str]] = mapped_column(Text)
 
 
+@dataclass
 class RadioGenres(Base):
     __tablename__ = 'radio_genres'
 
@@ -40,6 +46,7 @@ class RadioGenres(Base):
     genre_id: Mapped[int] = mapped_column(ForeignKey("genres.id"), primary_key=True)
 
 
+@dataclass
 class RadioAdTime(Base):
     __tablename__ = 'radio_ad_time'
 
@@ -50,6 +57,7 @@ class RadioAdTime(Base):
     ad_transmission_end: Mapped[datetime.datetime] = mapped_column(TIMESTAMP)
 
 
+@dataclass
 class Genres(Base):
     __tablename__ = 'genres'
 
@@ -57,6 +65,15 @@ class Genres(Base):
     name: Mapped[Optional[str]] = mapped_column(Text)
 
 
+@dataclass
+class ConnectionSearchFavorites(Base):
+    __tablename__ = 'connection_search_favorites'
+
+    radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
+    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id'), primary_key=True)
+
+
+@dataclass
 class Connections(Base):
     __tablename__ = 'connections'
 
@@ -70,14 +87,12 @@ class Connections(Base):
     preference_news: Mapped[bool] = mapped_column(Boolean)
     preference_ad: Mapped[bool] = mapped_column(Boolean)
 
-
-class ConnectionSearchFavorites(Base):
-    __tablename__ = 'connection_search_favorites'
-
-    radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
-    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id'), primary_key=True)
+    favorites = relationship(Radios, secondary='connection_search_favorites', backref='favorite_for_connections')
+    preferred_radios = relationship(Radios, secondary='connection_preferred_radios', backref='preferred_by_connections')
+    preferred_genres = relationship(Genres, secondary='connection_preferred_genres', backref='preferred_by_connections')
 
 
+@dataclass
 class ConnectionPreferredRadios(Base):
     __tablename__ = 'connection_preferred_radios'
 
@@ -85,6 +100,7 @@ class ConnectionPreferredRadios(Base):
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id'), primary_key=True)
 
 
+@dataclass
 class ConnectionPreferredGenres(Base):
     __tablename__ = 'connection_preferred_genres'
 

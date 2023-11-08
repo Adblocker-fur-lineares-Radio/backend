@@ -1,34 +1,53 @@
 import json
 
+from flask import jsonify
+from sqlalchemy import inspect
+
+from datenbank_pythonORM.Python.database_functions import get_connection, get_radio_by_query, \
+    update_search_request_for_connection, get_connection_favorites, update_search_remaining_updates, serialize
+
 
 def search(connection_id):
-    # TODO: connect to db
-    requested_updates = 1  # TODO: from db
+    connection = get_connection(connection_id)
+    favorites = get_connection_favorites(connection_id)
+    radios = get_radio_by_query(
+        search_query=connection.search_query,
+        search_without_ads=connection.search_without_ads,
+        ids=[fav.radio_id for fav in favorites])
+
+    remaining_updates = update_search_remaining_updates(connection_id)
+
     return json.dumps({
         'type': 'search_update',
-        'radios': [],
-        'remaining_updates': requested_updates - 1
+        'radios': serialize(radios),
+        'remaining_updates': remaining_updates
     })
 
 
-def search_request(client, req):
-    # TODO: connect to database, update search params in db
-    client_id = 0  # TODO: from db
-    client.send(search(client_id))
+def search_request(client, connection_id, req):
+    update_search_request_for_connection(
+        connection_id,
+        search_query=req["query"],
+        without_ads=req["filter"]["without_ads"],
+        ids=req["filter"]["ids"])
+
+    client.send(search(connection_id))
 
 
-def search_update_request(client, req):
+def search_update_request(client, connection_id, req):
     if req['requested_updates'] <= 0:
         print("Warning: search_update_request: requested <= 0 updates (need to be > 0)")
         return
 
-    # TODO: connect to database
-    connection_id = 1  # TODO: comes from db
-    remaining_updates = 0  # TODO: comes from db
+    # FIXME: possible "race condition": reading 'remaining_updates', possibly triggering instant update, then setting it
 
-    instant_update = remaining_updates <= 0
+    connection = get_connection(connection_id)
 
-    remaining_updates = req['requested_updates']  # TODO: send to database
+    instant_update = connection.search_remaining_update <= 0
+
+    remaining_updates = req['requested_updates']
+
+    update_search_remaining_updates(connection_id, remaining_updates)
 
     if instant_update:
         client.send(search(connection_id))

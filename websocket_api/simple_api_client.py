@@ -1,6 +1,5 @@
 from websocket import create_connection
 import json
-import time
 import threading
 
 
@@ -29,11 +28,11 @@ ws = create_connection("ws://localhost:5000/api")
 
 
 def make_requests(ws):
-    request_search(ws, "test", requested_updates=5)
-    print("sent search_request")
-    time.sleep(0.5)
-    request_stream(ws, preferred_radios=[1], preferred_genres=[1])
-    print("sent stream_request")
+    request_search(ws, "1", requested_updates=5)
+    # print("sent search_request")
+    # time.sleep(0.5)
+    # request_stream(ws, preferred_radios=[1], preferred_genres=[1])
+    # print("sent stream_request")
 
 
 def receive(ws):
