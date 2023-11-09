@@ -1,4 +1,5 @@
 import asyncio
+import time
 import websockets
 import json
 
@@ -12,7 +13,7 @@ def stream_guidance_wdr():
         'type': 'stream_guidance',
         'radio': 'https://wdr-wdr2-rheinruhr.icecastssl.wdr.de/wdr/wdr2/rheinruhr/mp3/56/stream.mp3?aggregator'
                  '=surfmusik-de&1697723004',
-        'buffer': 10
+        'buffer': 1
     })
 
 
@@ -24,7 +25,32 @@ def stream_guidance_1live():
     return json.dumps({
         'type': 'stream_guidance',
         'radio': 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
-        'buffer': 10
+        'buffer': 1
+    })
+
+
+def switch_to_test():
+    """
+    2. Example of switch_to
+    @return: Json-String
+    """
+    return json.dumps({
+        'type': 'radio_switch_event',
+        'switch_to': 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
+        'buffer': 1
+    })
+
+
+def switch_to_test2():
+    """
+    2. Example of switch_to
+    @return: Json-String
+    """
+    return json.dumps({
+        'type': 'radio_switch_event',
+        'switch_to': 'https://wdr-wdr2-rheinruhr.icecastssl.wdr.de/wdr/wdr2/rheinruhr/mp3/56/stream.mp3?aggregator'
+                     '=surfmusik-de&1697723004',
+        'buffer': 1
     })
 
 
@@ -40,13 +66,20 @@ async def hello(websocket):
     await websocket.send(stream_guidance_wdr())
     print(f'Server Sent: {stream_guidance_wdr()}')
 
-    count = 0
-    while True:
-        await websocket.send("0")
+    await asyncio.sleep(5)
+
+    await websocket.send(switch_to_test())
+    print(f'Server Sent: {switch_to_test()}')
+
+    await asyncio.sleep(10)
+
+    await websocket.send(switch_to_test2())
+    print(f'Server Sent: {switch_to_test2()}')
+
 
 
 async def main():
-    async with websockets.serve(hello, "localhost", 1234):
+    async with websockets.serve(hello, 'localhost', 1234):
         await asyncio.Future()  # run forever
 
 

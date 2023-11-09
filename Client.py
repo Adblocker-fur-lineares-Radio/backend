@@ -77,7 +77,8 @@ async def StartClient():
 
         data = openJson(msg)
         if data["type"] != "stream_guidance":
-            print("Error Wrong Answer")
+            print("Error No stream_guidance received")
+            return
         current_stream = data["radio"]
         buffer = data["buffer"]
 
@@ -93,41 +94,43 @@ async def StartClient():
         player.play()  # buffer
 
         while True:
+            try:
+                msg = await asyncio.wait_for(ws.recv(), timeout=10)
+                if msg != "0":
+                    print()
+                    print(f"Client received: {msg}")
+                    data2 = openJson(msg)
 
-            msg = await ws.recv()
+                    if data2["type"] == "search_update":
+                        radios = data2["radios"]
+                        remaining_updates = data2["remaining_updates"]
+                        # do nothing
 
-            if msg != "0":
-                print()
-                print(f"Client received: {msg}")
-                data2 = openJson(msg)
+                    elif data2["type"] == "radio_switch_event":
+                        player.stop()
+                        media = instance.media_new(data2["switch_to"])
+                        player.set_media(media)
+                        player.play()
 
-                if data2["type"] == "search_update":
-                    radios = data2["radios"]
-                    remaining_updates = data2["remaining_updates"]
-                    # do nothing
+                        time.sleep(0.5)  # buffer
+                        player.set_pause(1)  # buffer
+                        time.sleep(buffer)  # buffer
+                        player.play()  # buffer
 
-                elif data2["type"] == "radio_switch_event":
-                    player.stop()
-                    media = instance.media_new(data2["switch_to"])
-                    player.set_media(media)
-                    player.play()
+                    elif data2["type"] == "stream_guidance":
+                        print("Error Client already connected")
+                        return
 
-                    time.sleep(0.5)  # buffer
-                    player.set_pause(1)  # buffer
-                    time.sleep(buffer)  # buffer
-                    player.play()  # buffer
+                    elif data2["type"] == "radio_update_event":
+                        radio = data2["radio"]
+                        # do nothing
 
-                elif data2["type"] == "stream_guidance":
-                    print("Error Client already connected")
-                    return
+                    else:
+                        print("Error no matching funktion")
+                        return
 
-                elif data2["type"] == "radio_update_event":
-                    radio = data2["radio"]
-                    # do nothing
-
-                else:
-                    print("Error no matching funktion")
-                    return
+            except websockets.exceptions.ConnectionClosedOK:
+                pass
 
 
 if __name__ == '__main__':
