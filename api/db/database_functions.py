@@ -1,13 +1,14 @@
+from datetime import datetime
+
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm import sessionmaker
-# from api.db import create_and_connect_to_db
+from api.db import create_and_connect_to_db
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     ConnectionPreferredGenres, RadioGenres, RadioAdTime
 
 # create session with the db
-Session = sessionmaker()
-# Session = sessionmaker(bind=create_and_connect_to_db.engine)
+Session = sessionmaker(bind=create_and_connect_to_db.engine)
 session = Session()
 
 STATUS = {
@@ -199,7 +200,6 @@ def switch_to_working_radio(connection_id):
 
     if radio:
         radio = radio[0]
-        print("Das RADIO:", radio)
         stmt = (update(Connections)
                 .where(Connections.id == connection_id)
                 .values(current_radio_id=radio.id))
@@ -246,7 +246,7 @@ def get_connection(connection_id):
 
 
 def insert_new_connection(search_query=None, current_radio_id=None, search_without_ads=None,
-                          search_remaining_update=None, preference_music=None,
+                          search_remaining_update=0, preference_music=None,
                           preference_talk=None, preference_news=None, preference_ad=None):
     """
     Inserts new connection into DB
@@ -398,12 +398,38 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     session.execute(stmt5)
 
 
-def get_radios_that_need_switch_by_time():
-    stmt = (select(Radios).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
-            .where(
-        func.date_part('hour', func.now()).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
-        .and_(func.date_part('minute', func.now()).between(RadioAdTime.ad_start_time - 1,
-                                                           RadioAdTime.ad_end_time + 1))) != Radios.status_id == STATUS[
-                'ad'])
+def xor_(q1, q2):
+    return or_(
+        and_(not_(q1), q2),
+        and_(not_(q2), q1)
+    )
+
+
+def get_radios_that_need_switch_by_time_and_update():
+    now = func.now()
+
     # if inDerZeitVonWerbung xor status == 'werbung'
+
+    hour_check = func.date_part('hour', now).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
+    minute_check = (func.date_part('minute', now).between(RadioAdTime.ad_start_time - 1, RadioAdTime.ad_end_time + 1))
+
+    ad_check = and_(hour_check, minute_check)
+    current_status_is_ad = Radios.status_id == STATUS['ad']
+
+    stmt = (select(Radios).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
+            .where(xor_(
+                ad_check,
+                not_(current_status_is_ad))
+            ))
+
+    select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
+    select_ads = select_ids.where(ad_check)
+    select_not_ads = select_ids.where(not_(ad_check))
+
+    stmt2 = update(Radios).where(Radios.id.in_(select_ads)).values(status_id=STATUS['ad'])
+    stmt3 = update(Radios).where(Radios.id.in_(select_not_ads)).values(status_id=STATUS['music'])
+
+    session.execute(stmt2)
+    session.execute(stmt3)
+
     return untuple(session.execute(stmt).all())

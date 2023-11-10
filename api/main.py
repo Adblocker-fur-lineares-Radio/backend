@@ -4,6 +4,12 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
+from api.notify_client import start_notifier
+from stream_request import stream_request
+
+from db.database_functions import insert_new_connection, commit, rollback
+from search_request import search_request, search_update_request
+
 app = Flask(__name__)
 sock = Sock(app)
 
@@ -58,7 +64,6 @@ def testings():
         def send(self, msg):
             print(f"Sending: {msg}")
 
-
     search_request(Dummy(), 30, {
         'type': 'search_request',
         'query': '1',
@@ -72,11 +77,7 @@ def testings():
 
 app.run()
 
+notifier = start_notifier(connections)
+notifier.join()
+
 # close()
-
-#  IMPORTS
-
-from stream_request import stream_request
-
-from db.database_functions import insert_new_connection, commit, rollback
-from search_request import search_request, search_update_request
