@@ -1,9 +1,6 @@
 import json
 
-from flask import jsonify
-from sqlalchemy import inspect
-
-from datenbank_pythonORM.Python.database_functions import get_connection, get_radio_by_query, \
+from db.database_functions import get_connection, get_radio_by_query, \
     update_search_request_for_connection, get_connection_favorites, update_search_remaining_updates, serialize
 
 

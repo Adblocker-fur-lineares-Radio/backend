@@ -1,20 +1,16 @@
 from dataclasses import dataclass
 
-from sqlalchemy import Integer, ForeignKey, Text, TIMESTAMP, Boolean
+from sqlalchemy import Integer, ForeignKey, Text, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import MetaData
 from typing import Optional
-
-import datetime
 
 metadata_obj = MetaData()
 
 
 @dataclass
 class Base(DeclarativeBase):
-    type_annotation_map = {
-        datetime.datetime: TIMESTAMP(timezone=False)
-    }
+    pass
 
 
 @dataclass
@@ -28,6 +24,8 @@ class Radios(Base):
     current_interpret: Mapped[Optional[str]] = mapped_column(Text)
     stream_url: Mapped[str] = mapped_column(Text)
     logo_url: Mapped[str] = mapped_column(Text)
+
+    connections_currently_playing = relationship('connections', backref='current_radio')
 
 
 @dataclass
@@ -50,11 +48,12 @@ class RadioGenres(Base):
 class RadioAdTime(Base):
     __tablename__ = 'radio_ad_time'
 
-    radio_id: Mapped[int] = mapped_column(ForeignKey("radios.id"), primary_key=True)
-    ad_start_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, primary_key=True)
-    ad_end_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, primary_key=True)
-    ad_transmission_start: Mapped[datetime.datetime] = mapped_column(TIMESTAMP)
-    ad_transmission_end: Mapped[datetime.datetime] = mapped_column(TIMESTAMP)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    radio_id: Mapped[int] = mapped_column(ForeignKey("radios.id"))
+    ad_start_time: Mapped[int] = mapped_column(Integer)
+    ad_end_time: Mapped[int] = mapped_column(Integer)
+    ad_transmission_start: Mapped[int] = mapped_column(Integer)
+    ad_transmission_end: Mapped[int] = mapped_column(Integer)
 
 
 @dataclass

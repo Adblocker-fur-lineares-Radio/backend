@@ -1,15 +1,13 @@
 import json
 from json import JSONDecodeError
 
-from flask import Flask, jsonify
+from flask import Flask
 from flask_sock import Sock
 from simple_websocket import ConnectionClosed
 
 from search_request import search_request, search_update_request
-from stream_request import stream_request
-from websocket_api.periodic_test_update import start_test
 
-from datenbank_pythonORM.Python.database_functions import insert_new_connection, transaction, close, commit, rollback
+# from db.database_functions import insert_new_connection, commit, rollback
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -76,7 +74,7 @@ def testings():
         }
     })
 
-start_test(connections)
+
 app.run()
 
 # close()

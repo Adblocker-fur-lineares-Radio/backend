@@ -1,7 +1,8 @@
 import os
 from sqlalchemy import *
 from dotenv import load_dotenv
-from datenbank_pythonORM.Python.models import *
+
+from api.db.models import Base
 
 # load your local .env file with db connection of format "postgresql+psycopg://username:password@hostname(ip):port"
 load_dotenv()

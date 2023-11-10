@@ -1,7 +1,7 @@
 import json
 
-from datenbank_pythonORM.Python.database_functions import switch_to_working_radio, get_radio_by_id, \
-    update_preferences_for_connection, serialize, get_radio_by_connection
+from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
+    update_preferences_for_connection, serialize
 
 
 def radio_stream_event(connection_id):
@@ -14,8 +14,9 @@ def radio_stream_event(connection_id):
         'buffer': 0
     })
 
-def radio_update_event(connection_id):
-    radio = get_radio_by_connection(connection_id)
+
+def radio_update_event(radio_id):
+    radio = get_radio_by_id(radio_id)
 
     return json.dumps({
         'type': 'radio_switch_event',

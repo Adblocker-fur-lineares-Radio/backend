@@ -1,10 +1,10 @@
 import time
 from threading import Thread
 import random
-from search_request import search
-from websocket_api.stream_request import radio_stream_event
+from api.search_request import search
+from api.stream_request import radio_stream_event
 
-from datenbank_pythonORM.Python.database_functions import commit, update_search_remaining_updates
+from api.api import commit, update_search_remaining_updates
 
 
 def test_random_search_update(connections):

@@ -1,12 +1,13 @@
-import os
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm import sessionmaker
-from datenbank_pythonORM.Python.models import *
-from datenbank_pythonORM.Python import create_and_connect_to_db
+# from api.db import create_and_connect_to_db
+from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
+    ConnectionPreferredGenres, RadioGenres, RadioAdTime
 
 # create session with the db
-Session = sessionmaker(bind=create_and_connect_to_db.engine)
+Session = sessionmaker()
+# Session = sessionmaker(bind=create_and_connect_to_db.engine)
 session = Session()
 
 STATUS = {
@@ -43,6 +44,10 @@ def serialize(rowOrRows):
         return serializeRows(rowOrRows)
     else:
         return serializeRow(rowOrRows)
+
+
+def untuple(rows):
+    return [r[0] for r in rows]
 
 
 def transaction():
@@ -122,6 +127,20 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     return session.execute(stmt).all()
 
 
+def get_connections_by_radio_and_remaining_updates(radio_id):
+    stmt = (select(Connections)
+            .where(Connections.current_radio_id == radio_id)
+            .where(Connections.search_remaining_update > 0))
+    return untuple(session.execute(stmt).all())
+
+
+def get_connections_by_radio(radio_id):
+    stmt = (select(Connections)
+            .where(Connections.current_radio_id == radio_id)
+            .where(Connections.search_remaining_update > 0))
+    return untuple(session.execute(stmt).all())
+
+
 def get_preferred_radios(connection_id):
     """
     Queries DB for preferred Radios from a connection
@@ -132,23 +151,38 @@ def get_preferred_radios(connection_id):
     return session.execute(stmt).all()
 
 
+def get_connections_by_radio(radio_id):
+    stmt = (select(Connections, Radios)
+            .select_from(Radios)
+            .join(Connections.current_radio)
+            .where(Connections.current_radio_id == radio_id))
+
+    result = session.execute(stmt).all()
+    return [(row[0], row[1].status_id in helper_get_allowed_states(row[0])) for row in result]
+
+
+def helper_get_allowed_states(connection):
+    allowed_states = []
+    if connection.preference_music:
+        allowed_states.append(STATUS["music"])
+    if connection.preference_talk:
+        allowed_states.append(STATUS["talk"])
+    if connection.preference_news:
+        allowed_states.append(STATUS["news"])
+    if connection.preference_ad:
+        allowed_states.append(STATUS["ad"])
+    return allowed_states
+
+
 def switch_to_working_radio(connection_id):
     connection = get_connection(connection_id)
-    allowed_statuses = []
-    if connection.preference_music:
-        allowed_statuses.append(STATUS["music"])
-    if connection.preference_talk:
-        allowed_statuses.append(STATUS["talk"])
-    if connection.preference_news:
-        allowed_statuses.append(STATUS["news"])
-    if connection.preference_ad:
-        allowed_statuses.append(STATUS["ad"])
+    allowed_states = helper_get_allowed_states(connection)
 
     stmt = (select(Radios)
             .select_from(Connections)
             .join(Connections.preferred_radios)
             .where(Connections.id == connection_id)
-            .where(Radios.status_id.in_(allowed_statuses)))
+            .where(Radios.status_id.in_(allowed_states)))
 
     radio = session.execute(stmt).first()
 
@@ -160,7 +194,7 @@ def switch_to_working_radio(connection_id):
         # select 'random' radio
         # TODO: give user status about that it doesn't not a preferred radio
         stmt = (select(Radios)
-                .where(Radios.status_id.in_(allowed_statuses)))
+                .where(Radios.status_id.in_(allowed_states)))
         radio = session.execute(stmt).first()
 
     if radio:
@@ -363,4 +397,13 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     session.execute(stmt4)
     session.execute(stmt5)
 
-# print(update_search_remaining_updates(1))
+
+def get_radios_that_need_switch_by_time():
+    stmt = (select(Radios).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
+            .where(
+        func.date_part('hour', func.now()).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
+        .and_(func.date_part('minute', func.now()).between(RadioAdTime.ad_start_time - 1,
+                                                           RadioAdTime.ad_end_time + 1))) != Radios.status_id == STATUS[
+                'ad'])
+    # if inDerZeitVonWerbung xor status == 'werbung'
+    return untuple(session.execute(stmt).all())
