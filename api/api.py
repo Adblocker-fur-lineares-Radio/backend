@@ -1,13 +1,8 @@
-import json
-from json import JSONDecodeError
-
 from flask import Flask
 from flask_sock import Sock
+import json
+from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
-
-from search_request import search_request, search_update_request
-
-# from db.database_functions import insert_new_connection, commit, rollback
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -78,3 +73,10 @@ def testings():
 app.run()
 
 # close()
+
+#  IMPORTS
+
+from stream_request import stream_request
+
+from db.database_functions import insert_new_connection, commit, rollback
+from search_request import search_request, search_update_request
