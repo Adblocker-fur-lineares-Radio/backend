@@ -59,7 +59,7 @@ def get_radio_by_id(radio_id):
     """
 
     stmt = select(Radios).where(Radios.id == radio_id)
-    return session.execute(stmt).all()
+    return session.execute(stmt).first()[0]
 
 
 def get_radio_by_id_and_genre(radio_ids, genre_ids):
@@ -144,9 +144,12 @@ def switch_to_working_radio(connection_id):
     if connection.preference_ad:
         allowed_statuses.append(STATUS["ad"])
 
-    stmt = (select(Connections.preferred_radios)
+    stmt = (select(Radios)
+            .select_from(Connections)
+            .join(Connections.preferred_radios)
             .where(Connections.id == connection_id)
             .where(Radios.status_id.in_(allowed_statuses)))
+
     radio = session.execute(stmt).first()
 
     if not radio:
@@ -161,6 +164,8 @@ def switch_to_working_radio(connection_id):
         radio = session.execute(stmt).first()
 
     if radio:
+        radio = radio[0]
+        print("Das RADIO:", radio)
         stmt = (update(Connections)
                 .where(Connections.id == connection_id)
                 .values(current_radio_id=radio.id))
@@ -301,7 +306,7 @@ def update_search_remaining_updates(connection_id, value=None):
     """
     stmt = update(Connections).where(Connections.id == connection_id)
     if value:
-        stmt = stmt.values(search_remaining_update=value)
+        stmt = stmt.values(search_remaining_update=value).returning(Connections.search_remaining_update)
     else:
         stmt = stmt.where(
             Connections.search_remaining_update > 0).values(
@@ -312,10 +317,13 @@ def update_search_remaining_updates(connection_id, value=None):
     return search_remaining_updates
 
 
-def update_search_request_for_connection(connection_id, search_query=None, without_ads=False, ids=None):
+def update_search_request_for_connection(connection_id, search_query=None, without_ads=False, ids=None,
+                                         requested_updates=None):
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
-            .values(search_query=search_query, search_without_ads=without_ads))
+            .values(search_query=search_query,
+                    search_without_ads=without_ads,
+                    search_remaining_update=requested_updates))
     session.execute(stmt)
 
     stmt = (delete(ConnectionSearchFavorites)

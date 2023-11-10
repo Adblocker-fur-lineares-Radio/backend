@@ -1,7 +1,7 @@
 import json
 
 from datenbank_pythonORM.Python.database_functions import switch_to_working_radio, get_radio_by_id, \
-    update_preferences_for_connection
+    update_preferences_for_connection, serialize
 
 
 def stream_guidance(connection_id):
@@ -10,7 +10,7 @@ def stream_guidance(connection_id):
 
     return json.dumps({
         'type': 'stream_guidance',
-        'radio': radio,
+        'radio': serialize(radio),
         'buffer': 0
     })
 

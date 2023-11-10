@@ -27,6 +27,7 @@ def search(connection_id):
 def search_request(client, connection_id, req):
     update_search_request_for_connection(
         connection_id,
+        requested_updates=req["requested_updates"],
         search_query=req["query"],
         without_ads=req["filter"]["without_ads"],
         ids=req["filter"]["ids"])

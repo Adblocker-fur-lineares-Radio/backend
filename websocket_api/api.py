@@ -3,6 +3,7 @@ from json import JSONDecodeError
 
 from flask import Flask, jsonify
 from flask_sock import Sock
+from simple_websocket import ConnectionClosed
 
 from search_request import search_request, search_update_request
 from stream_request import stream_request
@@ -47,10 +48,14 @@ def api(client):
             print(f"Error: Request body has incorrect json structure: {raw}")
             rollback()
 
+        except ConnectionClosed:
+            print("Connection closed")
+
         except Exception as e:
-            print(f"########################\n#### Internal Error ####\n{e}")
+            # print(f"########################\n#### Internal Error ####\n{e}")
             rollback()
             client.close()
+            raise e
             return
 
 
