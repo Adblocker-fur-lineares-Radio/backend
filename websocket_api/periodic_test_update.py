@@ -2,7 +2,7 @@ import time
 from threading import Thread
 import random
 from search_request import search
-from websocket_api.stream_request import stream_guidance
+from websocket_api.stream_request import radio_stream_event
 
 from datenbank_pythonORM.Python.database_functions import commit, update_search_remaining_updates
 
@@ -27,7 +27,7 @@ def test_random_stream_request(connections):
             continue
         ids = [random.choice(list(connections.keys())) for _ in range(1)]
         for con in ids:
-            connections[con].send(stream_guidance(con))
+            connections[con].send(radio_stream_event(con))
             update_search_remaining_updates(con)  # decrements
         commit()
 

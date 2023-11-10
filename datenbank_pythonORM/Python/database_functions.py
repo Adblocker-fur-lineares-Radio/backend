@@ -95,7 +95,7 @@ def get_radio_by_connection(connection_id):
     stmt = select(Radios, Connections).join(ConnectionPreferredRadios,
                                             Radios.id == ConnectionPreferredRadios.radio_id).join(Connections,
                                                                                                   ConnectionPreferredRadios.connection_id == Connections.id)
-    result = session.execute(stmt).all()
+    result = session.execute(stmt).first()[0]
     return result
 
 
@@ -314,7 +314,7 @@ def update_search_remaining_updates(connection_id, value=None):
             Connections.search_remaining_update)
     result = session.execute(stmt)
     search_remaining_updates = result.scalar()
-    return search_remaining_updates
+    return search_remaining_updates or 0
 
 
 def update_search_request_for_connection(connection_id, search_query=None, without_ads=False, ids=None,
