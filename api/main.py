@@ -4,7 +4,7 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
-from api.notify_client import start_notifier
+from backend.api.notify_client import start_notifier
 from stream_request import stream_request
 
 from db.database_functions import insert_new_connection, commit, rollback

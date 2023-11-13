@@ -1,6 +1,6 @@
 import json
 
-from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
+from backend.api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
     update_preferences_for_connection, serialize
 
 
