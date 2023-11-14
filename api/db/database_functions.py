@@ -332,6 +332,14 @@ def delete_connection_from_db(connection_id):
     session.execute(stmt)
 
 
+def delete_all_connections_from_db():
+    """
+
+    @return:
+    """
+    session.execute("TRUNCATE TABLE connections CASCADE")
+
+
 def update_search_remaining_updates(connection_id, value=None):
     """
     :param connection_id: the corresponding connection_id
@@ -417,10 +425,10 @@ def get_radios_that_need_switch_by_time_and_update():
     current_status_is_ad = Radios.status_id == STATUS['ad']
 
     stmt = (select(Radios).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
-            .where(xor_(
-                ad_check,
-                not_(current_status_is_ad))
-            ))
+    .where(xor_(
+        ad_check,
+        not_(current_status_is_ad))
+    ))
 
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
