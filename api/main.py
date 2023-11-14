@@ -16,6 +16,21 @@ sock = Sock(app)
 connections = {}
 
 
+def is_json(myjson):
+    try:
+        json.loads(myjson)
+    except ValueError as e:
+        return False
+    return True
+
+
+def error(msg):
+    return json.dumps({
+        'type': 'error',
+        'message': msg
+    })
+
+
 @sock.route('/api')
 def api(client):
     mapping = {
@@ -32,12 +47,14 @@ def api(client):
     while True:
         raw = "<Failed>"
         try:
-            # with transaction():
             raw = client.receive()
-            data = json.loads(raw)
-            print(f"got request '{data['type']}': {raw}")
-            mapping[data['type']](client, connection_id, data)
-            commit()
+            if is_json(raw):
+                data = json.loads(raw)
+                print(f"got request '{data['type']}': {raw}")
+                mapping[data['type']](client, connection_id, data)
+                commit()
+            else:
+                client.send(error("Request body is not json"))
 
         except JSONDecodeError:
             print("Error: Request body is not json")
