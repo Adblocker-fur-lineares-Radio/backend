@@ -6,7 +6,8 @@ import websockets
 
 
 # address = "wss://adblock-radio.gweiermann.de/api"
-address = "ws://localhost:5000/api"
+# address = "ws://localhost:5000/api"
+address = "185.233.107.253:5000/api"
 
 
 def search_request(query, filter_ids=None, filter_without_ads=False, requested_updates=1):
@@ -80,10 +81,11 @@ async def StartClient():
         print(f"Client received: {msg}")
 
         data = openJson(msg)
-        if data["type"] != "stream_guidance":
-            print("Error No stream_guidance received")
+        if data["type"] != "radio_stream_event":
+            print("Error No Valid answer received")
             return
-        current_stream = data["radio"]
+        tmp = data["switch_to"]
+        current_stream = tmp["stream_url"]
         buffer = data["buffer"]
 
         instance = vlc.Instance()
@@ -99,7 +101,7 @@ async def StartClient():
 
         while True:
             try:
-                msg = await asyncio.wait_for(ws.recv(), timeout=10)
+                msg = await asyncio.wait_for(ws.recv(), timeout=100)
                 if msg != "0":
                     print()
                     print(f"Client received: {msg}")

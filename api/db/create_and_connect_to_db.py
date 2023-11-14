@@ -2,7 +2,7 @@ import os
 from sqlalchemy import *
 from dotenv import load_dotenv
 
-from db.models import Base
+from api.db.models import Base
 
 # load your local .env file with db connection of format "postgresql+psycopg://username:password@hostname(ip):port"
 load_dotenv()
