@@ -344,7 +344,7 @@ def delete_all_connections_from_db():
 
     @return:
     """
-    session.execute("TRUNCATE TABLE connections CASCADE")
+    session.execute(text("""TRUNCATE TABLE connections CASCADE"""))
 
 
 def update_search_remaining_updates(connection_id, value=None):
