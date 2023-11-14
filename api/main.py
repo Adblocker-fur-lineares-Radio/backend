@@ -4,7 +4,7 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
-from api.notify_client import start_notifier
+from notify_client import start_notifier
 from stream_request import stream_request
 
 from db.database_functions import insert_new_connection, commit, rollback
@@ -15,6 +15,10 @@ sock = Sock(app)
 
 connections = {}
 
+
+@app.route("/")
+def index():
+    return "<p>Hier wird nur die API unter /api gehostet \\o/</p>"
 
 @sock.route('/api')
 def api(client):
@@ -49,33 +53,17 @@ def api(client):
 
         except ConnectionClosed:
             print("Connection closed")
-
-        except Exception as e:
-            # print(f"########################\n#### Internal Error ####\n{e}")
-            rollback()
-            client.close()
-            raise e
             return
 
+        except Exception as e:
+            print(f"########################\n#### Internal Server Error ####")
+            rollback()
+            # print(e)
+            client.close()
+            raise e
+            # return
 
-def testings():
-    # Test Case
-    class Dummy:
-        def send(self, msg):
-            print(f"Sending: {msg}")
-
-    search_request(Dummy(), 30, {
-        'type': 'search_request',
-        'query': '1',
-        'requested_updates': 5,
-        'filter': {
-            'ids': None,
-            'without_ads': False
-        }
-    })
-
-
-app.run()
+app.run(host="0.0.0.0")
 
 notifier = start_notifier(connections)
 notifier.join()

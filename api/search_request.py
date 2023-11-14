@@ -4,6 +4,13 @@ from db.database_functions import get_connection, get_radio_by_query, \
     update_search_request_for_connection, get_connection_favorites, update_search_remaining_updates, serialize
 
 
+def error(msg):
+    return json.dumps({
+        'type': 'error',
+        'message': msg
+    })
+
+
 def search(connection_id):
     connection = get_connection(connection_id)
     favorites = get_connection_favorites(connection_id)
