@@ -1,10 +1,10 @@
 import time
 from threading import Thread
 
-from db.database_functions import get_connections_by_radio_and_remaining_updates, get_connections_by_radio, \
+from api.db.database_functions import get_connections_by_radio_and_remaining_updates, get_connections_by_radio, \
     get_radios_that_need_switch_by_time_and_update, commit
-from search_request import search
-from stream_request import radio_stream_event, radio_update_event
+from api.search_request import search
+from api.stream_request import radio_stream_event, radio_update_event
 
 
 def notify_client_search_update(connections, radio_id):

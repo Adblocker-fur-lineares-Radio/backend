@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm import sessionmaker
-from backend.api.db import create_and_connect_to_db
-from backend.api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
+from api.db import create_and_connect_to_db
+from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     ConnectionPreferredGenres, RadioGenres, RadioAdTime
 
 # create session with the db
