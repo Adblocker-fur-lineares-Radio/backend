@@ -55,7 +55,7 @@ INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, st
 VALUES(5, 'bigFM', 4, NULL, NULL,'https://stream.bigfm.de/saarland/aac-128' ,'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png');
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(6, 'BAYERN 1', 4, NULL, NULL,'https://tunein.com/radio/BAYERN-1-Oberfranken-Mittelfranken-907-s14979/' ,'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png');
+VALUES(6, 'BAYERN 1', 4, NULL, NULL,'https://f141.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2Y9yk1SkIaViIVVd3SGTUMXxl7E&token=AcxizukX8Nix4RUCDbDXIl9wRchP9sIiVCDcoDDTSYM&tvf=LCfQszCFlxdmMTQxLnJuZGZuay5jb20' ,'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png');
 
 -- Fill "radio_genres" table
 
