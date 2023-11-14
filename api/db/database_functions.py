@@ -333,14 +333,10 @@ def delete_connection_from_db(connection_id):
     @return -
 
     """
-    stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
-    session.execute(stmt)
-    stmt = delete(ConnectionPreferredRadios).where(ConnectionPreferredRadios.connection_id == connection_id)
-    session.execute(stmt)
-    stmt = delete(ConnectionSearchFavorites).where(ConnectionSearchFavorites.connection_id == connection_id)
-    session.execute(stmt)
+
     stmt = delete(Connections).where(Connections.id == connection_id)
     session.execute(stmt)
+    session.commit()
 
 
 def delete_all_connections_from_db():

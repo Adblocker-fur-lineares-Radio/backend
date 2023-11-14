@@ -7,18 +7,21 @@ from simple_websocket import ConnectionClosed
 from notify_client import start_notifier
 from stream_request import stream_request
 
-from db.database_functions import insert_new_connection, commit, rollback
+from db.database_functions import insert_new_connection, commit, rollback, delete_connection_from_db, \
+    delete_all_connections_from_db
 from search_request import search_request, search_update_request
 
 app = Flask(__name__)
 sock = Sock(app)
 
 connections = {}
-
+delete_all_connections_from_db()
+commit()
 
 @app.route("/")
 def index():
     return "<p>Hier wird nur die API unter /api gehostet \\o/</p>"
+
 
 def is_json(myjson):
     try:
@@ -69,14 +72,19 @@ def api(client):
             rollback()
 
         except ConnectionClosed:
+            delete_connection_from_db(connection_id)
+            commit()
             print("Connection closed")
             return
 
         except Exception as e:
+            delete_connection_from_db(connection_id)
+            commit()
             print(f"########################\n#### Internal Server Error ####")
             rollback()
             client.close()
             raise e
+
 
 app.run(host="0.0.0.0")
 

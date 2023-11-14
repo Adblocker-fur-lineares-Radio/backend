@@ -67,7 +67,9 @@ class ConnectionSearchFavorites(Base):
     __tablename__ = 'connection_search_favorites'
 
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
-    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id'), primary_key=True)
+    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
+
+    parent = relationship("Connections", back_populates="childSearchFav")
 
 
 @dataclass
@@ -89,12 +91,21 @@ class Connections(Base):
     preferred_genres = relationship(Genres, secondary='connection_preferred_genres', backref='preferred_by_connections')
     current_radio = relationship(Radios, backref='connections_currently_playing')
 
+
+    #Die 3 Zeilen werfen Warnings, weil es wegen den reltionships hierdrueber, mehrere relationships ueber den gleichen Secondary Key gibt
+    childPrefRadios = relationship("ConnectionPreferredRadios", back_populates="parent", cascade="all, delete", passive_deletes=True, )
+    childPrefGenres = relationship("ConnectionPreferredGenres", back_populates="parent", cascade="all, delete", passive_deletes=True,)
+    childSearchFav = relationship("ConnectionSearchFavorites", back_populates="parent", cascade="all, delete", passive_deletes=True,)
+
+
 @dataclass
 class ConnectionPreferredRadios(Base):
     __tablename__ = 'connection_preferred_radios'
 
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
-    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id'), primary_key=True)
+    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
+
+    parent = relationship("Connections", back_populates="childPrefRadios")
 
 
 @dataclass
@@ -102,4 +113,6 @@ class ConnectionPreferredGenres(Base):
     __tablename__ = 'connection_preferred_genres'
 
     genre_id: Mapped[int] = mapped_column(ForeignKey('genres.id'), primary_key=True)
-    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id'), primary_key=True)
+    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
+
+    parent = relationship("Connections", back_populates="childPrefGenres")
