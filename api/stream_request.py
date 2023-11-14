@@ -1,7 +1,8 @@
 import json
 
-from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
+from backend.api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
     update_preferences_for_connection, serialize
+from error import *
 
 
 def radio_stream_event(connection_id):
@@ -25,14 +26,16 @@ def radio_update_event(radio_id):
 
 
 def stream_request(client, connection_id, req):
-    update_preferences_for_connection(
-        connection_id,
-        preferred_radios=req["preferred_radios"],
-        preferred_genres=req["preferred_genres"],
-        preference_ad=req["preferred_experience"]["ad"],
-        preference_talk=req["preferred_experience"]["talk"],
-        preference_music=req["preferred_experience"]["music"],
-        preference_news=req["preferred_experience"]["news"]
-    )
+    if check_valid_stream_request(client, req):
+        update_preferences_for_connection(
+            connection_id,
+            preferred_radios=req["preferred_radios"],
+            preferred_genres=req["preferred_genres"],
+            preference_ad=req["preferred_experience"]["ad"],
+            preference_talk=req["preferred_experience"]["talk"],
+            preference_music=req["preferred_experience"]["music"],
+            preference_news=req["preferred_experience"]["news"]
+        )
+        client.send(radio_stream_event(connection_id))
 
-    client.send(radio_stream_event(connection_id))
+

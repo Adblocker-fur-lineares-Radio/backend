@@ -4,10 +4,7 @@ import json
 import asyncio
 import websockets
 
-
-# address = "wss://adblock-radio.gweiermann.de/api"
-# address = "ws://localhost:5000/api"
-address = "185.233.107.253:5000/api"
+address = "ws://185.233.107.253:5000/api"
 
 
 def search_request(query, filter_ids=None, filter_without_ads=False, requested_updates=1):

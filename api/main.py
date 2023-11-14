@@ -10,6 +10,7 @@ from stream_request import stream_request
 from db.database_functions import insert_new_connection, commit, rollback, delete_connection_from_db, \
     delete_all_connections_from_db
 from search_request import search_request, search_update_request
+from error import *
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -18,24 +19,10 @@ connections = {}
 delete_all_connections_from_db()
 commit()
 
+
 @app.route("/")
 def index():
     return "<p>Hier wird nur die API unter /api gehostet \\o/</p>"
-
-
-def is_json(myjson):
-    try:
-        json.loads(myjson)
-    except ValueError as e:
-        return False
-    return True
-
-
-def error(msg):
-    return json.dumps({
-        'type': 'error',
-        'message': msg
-    })
 
 
 @sock.route('/api')
@@ -55,26 +42,25 @@ def api(client):
         raw = "<Failed>"
         try:
             raw = client.receive()
-            if is_json(raw):  # FIXME: don't parse `raw` twice
-                data = json.loads(raw)
-                print(f"got request '{data['type']}': {raw}")
-                mapping[data['type']](client, connection_id, data)
-                commit()
-            else:
-                client.send(error("Request body is not json"))
+            data = json.loads(raw)
+            print(f"got request '{data['type']}': {raw}")
+            mapping[data['type']](client, connection_id, data)
+            commit()
 
         except JSONDecodeError:
-            print("Error: Request body is not json")
+            print(f"Server sent: { error('Request body is not json') }")
+            client.send(error("Request body is not json"))
             rollback()
 
         except KeyError:
-            print(f"Error: Request body has incorrect json structure: {raw}")
+            print(f"Server sent: {error('Request body has incorrect json structure')}")
+            client.send(error("Request body has incorrect json structure"))
             rollback()
 
         except ConnectionClosed:
             delete_connection_from_db(connection_id)
             commit()
-            print("Connection closed")
+            print(f"Server closed connection to: {client}")
             return
 
         except Exception as e:
