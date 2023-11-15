@@ -15,14 +15,18 @@ app = Flask(__name__)
 sock = Sock(app)
 
 connections = {}
+
+# deletes all residual connections from the db after server reboot
 delete_all_connections_from_db()
 commit()
 
+# default page route specification
 @app.route("/")
 def index():
     return "<p>Hier wird nur die API unter /api gehostet \\o/</p>"
 
 
+# tries to load json file if it has the correct format
 def is_json(myjson):
     try:
         json.loads(myjson)
@@ -31,13 +35,15 @@ def is_json(myjson):
     return True
 
 
+# helper function to send an error message
 def error(msg):
     return json.dumps({
         'type': 'error',
         'message': msg
     })
 
-
+# /api page route specification
+# is responsible to send errors and
 @sock.route('/api')
 def api(client):
     mapping = {

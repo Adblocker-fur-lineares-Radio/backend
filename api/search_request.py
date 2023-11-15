@@ -5,6 +5,11 @@ from api.db.database_functions import get_connection, get_radio_by_query, \
 
 
 def search(connection_id):
+    """
+    Searches DB for connection and its preferences
+    @param connection_id: the specified connection
+    @return: the connection information in json format
+    """
     connection = get_connection(connection_id)
     favorites = get_connection_favorites(connection_id)
     radios = get_radio_by_query(
@@ -22,6 +27,13 @@ def search(connection_id):
 
 
 def search_request(client, connection_id, req):
+    """
+    Client requests to change connection preferences, gets search(_update) response
+    @param client: specified client
+    @param connection_id: specified connection
+    @param req: connection information to be changed
+    @return: -
+    """
     update_search_request_for_connection(
         connection_id,
         requested_updates=req["requested_updates"],
@@ -33,6 +45,13 @@ def search_request(client, connection_id, req):
 
 
 def search_update_request(client, connection_id, req):
+    """
+    Client requests to receive updates, gets search(_update) response if instant_update is enabled
+    @param client: specified client
+    @param connection_id: specified connection
+    @param req: requested updates
+    @return: -
+    """
     if req['requested_updates'] <= 0:
         print("Warning: search_update_request: requested <= 0 updates (need to be > 0)")
         return

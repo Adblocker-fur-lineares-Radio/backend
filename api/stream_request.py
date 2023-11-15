@@ -5,6 +5,11 @@ from api.db.database_functions import switch_to_working_radio, get_radio_by_id, 
 
 
 def radio_stream_event(connection_id):
+    """
+    Servers response to "stream_request", selecting one radio to be switched to
+    @param connection_id: the specified connection
+    @return: the radio to be switched to with a buffer
+    """
     radio_id = switch_to_working_radio(connection_id)
     radio = get_radio_by_id(radio_id)
 
@@ -16,6 +21,11 @@ def radio_stream_event(connection_id):
 
 
 def radio_update_event(radio_id):
+    """
+    Servers radio update
+    @param radio_id: the specified radio
+    @return: the serialized radio object
+    """
     radio = get_radio_by_id(radio_id)
 
     return json.dumps({
@@ -25,6 +35,13 @@ def radio_update_event(radio_id):
 
 
 def stream_request(client, connection_id, req):
+    """
+    Client sends list of preferences, gets radio_stream_event response
+    @param client: specified client
+    @param connection_id: specified connection
+    @param req: the requested preference changes
+    @return: -
+    """
     update_preferences_for_connection(
         connection_id,
         preferred_radios=req["preferred_radios"],
