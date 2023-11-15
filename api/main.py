@@ -10,7 +10,7 @@ from stream_request import stream_request
 from db.database_functions import insert_new_connection, commit, rollback, delete_connection_from_db, \
     delete_all_connections_from_db
 from search_request import search_request, search_update_request
-from error import *
+from error import error
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -35,7 +35,6 @@ def api(client):
     global connections
     connection_id = insert_new_connection()
     connections[connection_id] = client
-
     commit()
 
     while True:
@@ -48,7 +47,7 @@ def api(client):
             commit()
 
         except JSONDecodeError:
-            print(f"Server sent: { error('Request body is not json') }")
+            print(f"Server sent: {error('Request body is not json')}")
             client.send(error("Request body is not json"))
             rollback()
 
