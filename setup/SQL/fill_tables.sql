@@ -36,26 +36,26 @@ VALUES(6, '80er');
 -- Fill "radios" table
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(1, '1Live', 4, NULL, NULL,'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de' ,'https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png');
+VALUES(1, '1Live', 2, NULL, NULL,'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de' ,'https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png');
 
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(2, 'WDR 2', 4, NULL, NULL,'https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20' ,'https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png');
+VALUES(2, 'WDR 2', 2, NULL, NULL,'https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20' ,'https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png');
 
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(3, '100,5', 4, NULL, NULL,'https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref' ,'https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png');
+VALUES(3, '100,5', 2, NULL, NULL,'https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref' ,'https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png');
 
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(4, 'Antenne AC', 4, NULL, NULL,'https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high' ,'https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png');
+VALUES(4, 'Antenne AC', 2, NULL, NULL,'https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high' ,'https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png');
 
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(5, 'bigFM', 4, NULL, NULL,'https://stream.bigfm.de/saarland/aac-128' ,'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png');
+VALUES(5, 'bigFM', 2, NULL, NULL,'https://stream.bigfm.de/saarland/aac-128' ,'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png');
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url)
-VALUES(6, 'BAYERN 1', 4, NULL, NULL,'https://f141.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2Y9yk1SkIaViIVVd3SGTUMXxl7E&token=AcxizukX8Nix4RUCDbDXIl9wRchP9sIiVCDcoDDTSYM&tvf=LCfQszCFlxdmMTQxLnJuZGZuay5jb20' ,'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png');
+VALUES(6, 'BAYERN 1', 2, NULL, NULL,'https://tunein.com/radio/BAYERN-1-Oberfranken-Mittelfranken-907-s14979/' ,'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png');
 
 -- Fill "radio_genres" table
 
