@@ -440,4 +440,15 @@ def get_radios_that_need_switch_by_time_and_update():
     session.execute(stmt2)
     session.execute(stmt3)
 
-    return untuple(session.execute(stmt).all())
+    stmt4 = select(func.min(RadioAdTime.ad_start_time)).where(RadioAdTime.ad_start_time > func.date_part('minute', now))
+    next_event = untuple(session.execute(stmt4))
+    if next_event[0] is None:
+        stmt5 = select(func.min(RadioAdTime.ad_start_time)).where(RadioAdTime.ad_start_time <= func.date_part('minute', now))
+        next_event = untuple(session.execute(stmt5))
+
+    return [untuple(session.execute(stmt).all()), next_event[0]]
+
+
+def get_radio_ad_times():
+    stmt = select(RadioAdTime)
+    untuple(session.execute(stmt).all())

@@ -23,14 +23,15 @@ def notify_client_stream_guidance(connections, radio_id):
 
 
 def analyse_radio_stream(connections):
+    switch_time = None
     while True:
-        streams = get_radios_that_need_switch_by_time_and_update()
-        for stream in streams:
-            notify_client_search_update(connections, stream.id)
-            notify_client_stream_guidance(connections, stream.id)
-        commit()
-        time.sleep(1)
-
+        if switch_time is None or switch_time == int(time.strftime('%M', time.localtime())):
+            [streams, switch_time] = get_radios_that_need_switch_by_time_and_update()
+            print(switch_time)
+            for stream in streams:
+                notify_client_search_update(connections, stream.id)
+                notify_client_stream_guidance(connections, stream.id)
+            commit()
 
 # class Dummy2:
 #     def __init__(self, id):
@@ -45,9 +46,12 @@ def analyse_radio_stream(connections):
 #         return Dummy2(item)
 #
 #
-# connections = Dummy1()
+# connection = Dummy1()
+
 
 def start_notifier(connections):
+
     analysation = Thread(target=analyse_radio_stream, args=(connections))
     analysation.start()
     return analysation
+
