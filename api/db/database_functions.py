@@ -405,6 +405,8 @@ def delete_connection_from_db(connection_id):
 
     """
 
+
+
     stmt = delete(Connections).where(Connections.id == connection_id)
     session.execute(stmt)
 
@@ -493,21 +495,22 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     session.execute(stmt)
 
     if isinstance(preferred_radios, list) and len(preferred_radios) > 0:
-        stmt = insert(ConnectionPreferredRadios).values([
-            {"connection_id": connection_id, "radio_id": i}
-            for i in preferred_radios
-        ])
-        session.execute(stmt)
-
-    if isinstance(preferred_genres, list) and len(preferred_genres) > 0:
-        stmt = insert(ConnectionPreferredGenres).values([
-            {"connection_id": connection_id, "genre_id": i}
-            for i in preferred_genres
-        ])
-        session.execute(stmt)
+        for i in preferred_radios:
+            stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i)
+            session.execute(stmt)
+        commit()
 
     stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
     session.execute(stmt)
+
+    if isinstance(preferred_genres, list) and len(preferred_genres) > 0:
+        stmt = insert(ConnectionPreferredGenres)
+        session.execute(stmt, [
+            {"connection_id": connection_id, "genre_id": i}
+            for i in preferred_genres
+        ])
+
+
 
 
 def xor_(q1, q2):

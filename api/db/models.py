@@ -73,7 +73,6 @@ class ConnectionSearchFavorites(Base):
 
     # parent = relationship("Connections", back_populates="childSearchFav")
 
-
 @dataclass
 class Connections(Base):
     __tablename__ = 'connections'

@@ -1,7 +1,7 @@
 import json
 
 from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
-    update_preferences_for_connection, serialize
+    update_preferences_for_connection, serialize, commit
 from error import check_valid_stream_request, error
 
 
@@ -16,6 +16,7 @@ def radio_stream_event(connection_id):
         return error("internal error")
     else:
         radio_id = switch_to_working_radio(connection_id)
+        commit()
         if radio_id is None:
             print("radio_stream_event: Missing radio_id")
             return error("internal error")
@@ -61,7 +62,7 @@ def stream_request(client, connection_id, req):
     @param req: the requested preference changes
     @return: -
     """
-    if check_valid_stream_request(req, client):
+    if check_valid_stream_request(req, client):  # check_valid_stream_request sends error by itself
         update_preferences_for_connection(
             connection_id,
             preferred_radios=req["preferred_radios"],
@@ -72,3 +73,5 @@ def stream_request(client, connection_id, req):
             preference_news=req["preferred_experience"]["news"]
         )
         client.send(radio_stream_event(connection_id))
+        commit()
+

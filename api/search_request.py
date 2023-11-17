@@ -31,6 +31,7 @@ def search(connection_id):
                     ids=[fav.radio_id for fav in favorites])
 
                 remaining_updates = update_search_remaining_updates(connection_id)
+                commit()
 
                 return json.dumps({
                     'type': 'search_update',
@@ -55,6 +56,7 @@ def search_request(client, connection_id, req):
             without_ads=req["filter"]["without_ads"],
             ids=req["filter"]["ids"]
         )
+        commit()
         client.send(search(connection_id))
 
 
@@ -78,5 +80,6 @@ def search_update_request(client, connection_id, req):
             instant_update = connection.search_remaining_update <= 0
             remaining_updates = req['requested_updates']
             update_search_remaining_updates(connection_id, remaining_updates)
+            commit()
             if instant_update:
                 client.send(search(connection_id))
