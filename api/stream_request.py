@@ -61,7 +61,7 @@ def stream_request(client, connection_id, req):
     @param req: the requested preference changes
     @return: -
     """
-    if check_valid_stream_request(client, req):
+    if check_valid_stream_request(req, client):
         update_preferences_for_connection(
             connection_id,
             preferred_radios=req["preferred_radios"],
