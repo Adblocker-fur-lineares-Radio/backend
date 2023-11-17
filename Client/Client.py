@@ -3,9 +3,10 @@ import vlc
 import json
 import asyncio
 import websockets
-from api.db.database_functions import delete_connection_from_db
+# from api.db.database_functions import delete_connection_from_db
 
-address = "ws://185.233.107.253:5000/api"
+# address = "ws://185.233.107.253:5000/api"
+address = "ws://127.0.0.1:5000/api"
 
 
 def search_request(query, filter_ids=None, filter_without_ads=False, requested_updates=1):
@@ -50,7 +51,7 @@ def stream_request(preferred_radios=None, preferred_genres=None, preferred_exper
     """
     return (json.dumps({
         'type': 'stream_request',
-        'preferred_radios': preferred_radios or [1],
+        'preferred_radios': preferred_radios or [2],
         'preferred_genres': preferred_genres or [1],
         'preferred_experience': preferred_experience or {'ad': False, 'news': True, 'music': True, 'talk': True}
     }))
@@ -99,7 +100,7 @@ async def StartClient():
 
         while True:
             try:
-                msg = await asyncio.wait_for(ws.recv(), timeout=100)
+                msg = await asyncio.wait_for(ws.recv(), timeout=30)
                 if msg != "0":
                     print()
                     print(f"Client received: {msg}")
@@ -138,5 +139,4 @@ async def StartClient():
 
 
 if __name__ == '__main__':
-    #delete_connection_from_db(7)
     asyncio.run(StartClient())

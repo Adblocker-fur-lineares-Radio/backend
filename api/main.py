@@ -7,8 +7,9 @@ from simple_websocket import ConnectionClosed
 from notify_client import start_notifier
 from stream_request import stream_request
 
-from db.database_functions import insert_new_connection, commit, rollback, delete_connection_from_db, \
+from db.database_functions import insert_new_connection, commit, rollback, \
     delete_all_connections_from_db
+from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 from error import error
 
@@ -37,7 +38,7 @@ def api(client):
     global connections
     connection_id = insert_new_connection()
     connections[connection_id] = client
-    commit()
+
 
     while True:
         raw = "<Failed>"
@@ -47,6 +48,7 @@ def api(client):
             print(f"got request '{data['type']}': {raw}")
             mapping[data['type']](client, connection_id, data)
             commit()
+
 
         except JSONDecodeError:
             print(f"Server sent: {error('Request body is not json')}")
