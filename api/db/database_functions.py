@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm import sessionmaker
-from backend.api.db import create_and_connect_to_db
-from backend.api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
+from api.db import create_and_connect_to_db
+from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     ConnectionPreferredGenres, RadioGenres, RadioAdTime
 
 # create session with the db
@@ -554,12 +554,15 @@ def get_radios_that_need_switch_by_time_and_update():
     session.execute(stmt2)
     session.execute(stmt3)
 
-    stmt4 = select(func.min(RadioAdTime.ad_start_time)).where(RadioAdTime.ad_start_time > func.date_part('minute', now))
+    stmt4 = (select(func.min(func.least(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time)))
+             .where(or_(RadioAdTime.ad_start_time > func.date_part('minute', now),
+                        RadioAdTime.ad_end_time > func.date_part('minute', now))))
+
     next_event = untuple(session.execute(stmt4))
     if next_event[0] is None:
-        stmt5 = select(func.min(RadioAdTime.ad_start_time)).where(
-            RadioAdTime.ad_start_time <= func.date_part('minute', now))
+        stmt5 = (select(func.min(func.least(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time)))
+        .where(or_(
+            RadioAdTime.ad_start_time <= func.date_part('minute', now),
+            RadioAdTime.ad_end_time <= func.date_part('minute', now))))
         next_event = untuple(session.execute(stmt5))
-
     return [all(stmt), next_event[0]]
-

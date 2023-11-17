@@ -3,6 +3,7 @@ import vlc
 import json
 import asyncio
 import websockets
+from api.db.database_functions import delete_connection_from_db
 
 address = "ws://185.233.107.253:5000/api"
 
@@ -49,7 +50,7 @@ def stream_request(preferred_radios=None, preferred_genres=None, preferred_exper
     """
     return (json.dumps({
         'type': 'stream_request',
-        'preferred_radios': preferred_radios or [],
+        'preferred_radios': preferred_radios or [1],
         'preferred_genres': preferred_genres or [],
         'preferred_experience': preferred_experience or {'ad': False, 'news': True, 'music': True, 'talk': True}
     }))
@@ -137,4 +138,5 @@ async def StartClient():
 
 
 if __name__ == '__main__':
+    delete_connection_from_db(7)
     asyncio.run(StartClient())
