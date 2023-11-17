@@ -232,8 +232,6 @@ def get_connections_by_radio(radio_id):
     @return: the connection as a list of rows
     """
     stmt = (select(Connections, Radios)
-            .select_from(Radios)
-            .join(Connections.current_radio)
             .where(Connections.current_radio_id == radio_id))
 
     result = session.execute(stmt).all()
@@ -267,10 +265,8 @@ def switch_to_working_radio(connection_id):
     connection = get_connection(connection_id)
     allowed_states = helper_get_allowed_states(connection)
 
-    stmt = (select(Radios)
-            .select_from(Connections)
-            .join(Connections.preferred_radios)
-            .where(Connections.id == connection_id)
+    stmt = (select(Radios).join(ConnectionPreferredRadios, Radios.id == ConnectionPreferredRadios.radio_id)
+            .where(ConnectionPreferredRadios.connection_id == connection_id)
             .where(Radios.status_id.in_(allowed_states)))
 
     radio = first(stmt)
@@ -399,6 +395,7 @@ def insert_into_connection_preferred_genres(genre_ids, connection_id):
         session.execute(insert(ConnectionPreferredGenres), [{"genre_id": genre_id, "connection_id": connection_id}])
 
 
+
 def delete_connection_from_db(connection_id):
     """
     Removes all entries from "connections", "connection_search_favorites", "connection_preferred_radios",
@@ -408,8 +405,13 @@ def delete_connection_from_db(connection_id):
 
     """
 
+
+
     stmt = delete(Connections).where(Connections.id == connection_id)
     session.execute(stmt)
+
+
+
 
 
 def delete_all_connections_from_db():
@@ -493,21 +495,22 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     session.execute(stmt)
 
     if isinstance(preferred_radios, list) and len(preferred_radios) > 0:
-        stmt = insert(ConnectionPreferredRadios).values([
-            {"connection_id": connection_id, "radio_id": i}
-            for i in preferred_radios
-        ])
-        session.execute(stmt)
-
-    if isinstance(preferred_genres, list) and len(preferred_genres) > 0:
-        stmt = insert(ConnectionPreferredGenres).values([
-            {"connection_id": connection_id, "genre_id": i}
-            for i in preferred_genres
-        ])
-        session.execute(stmt)
+        for i in preferred_radios:
+            stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i)
+            session.execute(stmt)
+        commit()
 
     stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
     session.execute(stmt)
+
+    if isinstance(preferred_genres, list) and len(preferred_genres) > 0:
+        stmt = insert(ConnectionPreferredGenres)
+        session.execute(stmt, [
+            {"connection_id": connection_id, "genre_id": i}
+            for i in preferred_genres
+        ])
+
+
 
 
 def xor_(q1, q2):
@@ -554,12 +557,15 @@ def get_radios_that_need_switch_by_time_and_update():
     session.execute(stmt2)
     session.execute(stmt3)
 
-    stmt4 = select(func.min(RadioAdTime.ad_start_time)).where(RadioAdTime.ad_start_time > func.date_part('minute', now))
+    stmt4 = (select(func.min(func.least(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time)))
+             .where(or_(RadioAdTime.ad_start_time > func.date_part('minute', now),
+                        RadioAdTime.ad_end_time > func.date_part('minute', now))))
+
     next_event = untuple(session.execute(stmt4))
     if next_event[0] is None:
-        stmt5 = select(func.min(RadioAdTime.ad_start_time)).where(
-            RadioAdTime.ad_start_time <= func.date_part('minute', now))
+        stmt5 = (select(func.min(func.least(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time)))
+        .where(or_(
+            RadioAdTime.ad_start_time <= func.date_part('minute', now),
+            RadioAdTime.ad_end_time <= func.date_part('minute', now))))
         next_event = untuple(session.execute(stmt5))
-
     return [all(stmt), next_event[0]]
-

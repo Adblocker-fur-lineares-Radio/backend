@@ -71,8 +71,7 @@ class ConnectionSearchFavorites(Base):
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
 
-    parent = relationship("Connections", back_populates="childSearchFav")
-
+    # parent = relationship("Connections", back_populates="childSearchFav")
 
 @dataclass
 class Connections(Base):
@@ -88,18 +87,19 @@ class Connections(Base):
     preference_news: Mapped[Optional[bool]] = mapped_column(Boolean)
     preference_ad: Mapped[Optional[bool]] = mapped_column(Boolean)
 
-    favorites = relationship(Radios, secondary='connection_search_favorites', backref='favorite_for_connections')
-    preferred_radios = relationship(Radios, secondary='connection_preferred_radios', backref='preferred_by_connections')
-    preferred_genres = relationship(Genres, secondary='connection_preferred_genres', backref='preferred_by_connections')
-    current_radio = relationship(Radios, backref='connections_currently_playing')
+    # favorites = relationship(Radios, secondary='connection_search_favorites', backref='favorite_for_connections')
+    # preferred_radios = relationship(Radios, secondary='connection_preferred_radios', backref='preferred_by_connections')
+    # preferred_genres = relationship(Genres, secondary='connection_preferred_genres', backref='preferred_by_connections')
+    # current_radio = relationship(Radios, backref='connections_currently_playing')
 
-    # Die 3 Zeilen werfen Warnings, weil es wegen den reltionships hierdrueber, mehrere relationships ueber den gleichen Secondary Key gibt
-    childPrefRadios = relationship("ConnectionPreferredRadios", back_populates="parent", cascade="all, delete",
-                                   passive_deletes=True, )
-    childPrefGenres = relationship("ConnectionPreferredGenres", back_populates="parent", cascade="all, delete",
-                                   passive_deletes=True, )
-    childSearchFav = relationship("ConnectionSearchFavorites", back_populates="parent", cascade="all, delete",
-                                  passive_deletes=True, )
+    # Die 3 Zeilen werfen Warnings, weil es wegen den reltionships hierdrueber, mehrere relationships ueber den
+    # gleichen Secondary Key gibt
+    # childPrefRadios = relationship("ConnectionPreferredRadios", back_populates="parent", cascade="all, delete",
+    #                                 )
+    # childPrefGenres = relationship("ConnectionPreferredGenres", back_populates="parent", cascade="all, delete",
+    #                                )
+    # childSearchFav = relationship("ConnectionSearchFavorites", back_populates="parent", cascade="all, delete",
+    #                               )
 
 
 @dataclass
@@ -109,7 +109,7 @@ class ConnectionPreferredRadios(Base):
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
 
-    parent = relationship("Connections", back_populates="childPrefRadios")
+    # parent = relationship("Connections", back_populates="childPrefRadios")
 
 
 @dataclass
@@ -119,4 +119,4 @@ class ConnectionPreferredGenres(Base):
     genre_id: Mapped[int] = mapped_column(ForeignKey('genres.id'), primary_key=True)
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
 
-    parent = relationship("Connections", back_populates="childPrefGenres")
+    # parent = relationship("Connections", back_populates="childPrefGenres")

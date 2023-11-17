@@ -57,7 +57,6 @@ def start_notifier(connections):
     @param connections:
     @return: the thread
     """
-    analyse_radio_stream(connections)
     analysation = Thread(target=analyse_radio_stream, args=(connections))
     analysation.start()
     return analysation
