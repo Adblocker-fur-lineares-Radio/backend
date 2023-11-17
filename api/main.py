@@ -16,10 +16,12 @@ app = Flask(__name__)
 sock = Sock(app)
 
 connections = {}
+
+# deletes all residual connections from the db after server reboot
 delete_all_connections_from_db()
 commit()
 
-
+# default page route specification
 @app.route("/")
 def index():
     return "<p>Hier wird nur die API unter /api gehostet \\o/</p>"

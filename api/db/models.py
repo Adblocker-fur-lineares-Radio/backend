@@ -8,6 +8,8 @@ from typing import Optional
 metadata_obj = MetaData()
 
 
+# The following class maps python Objects to PostgreSQL tables
+
 @dataclass
 class Base(DeclarativeBase):
     pass
@@ -91,11 +93,13 @@ class Connections(Base):
     preferred_genres = relationship(Genres, secondary='connection_preferred_genres', backref='preferred_by_connections')
     current_radio = relationship(Radios, backref='connections_currently_playing')
 
-
-    #Die 3 Zeilen werfen Warnings, weil es wegen den reltionships hierdrueber, mehrere relationships ueber den gleichen Secondary Key gibt
-    childPrefRadios = relationship("ConnectionPreferredRadios", back_populates="parent", cascade="all, delete", passive_deletes=True, )
-    childPrefGenres = relationship("ConnectionPreferredGenres", back_populates="parent", cascade="all, delete", passive_deletes=True,)
-    childSearchFav = relationship("ConnectionSearchFavorites", back_populates="parent", cascade="all, delete", passive_deletes=True,)
+    # Die 3 Zeilen werfen Warnings, weil es wegen den reltionships hierdrueber, mehrere relationships ueber den gleichen Secondary Key gibt
+    childPrefRadios = relationship("ConnectionPreferredRadios", back_populates="parent", cascade="all, delete",
+                                   passive_deletes=True, )
+    childPrefGenres = relationship("ConnectionPreferredGenres", back_populates="parent", cascade="all, delete",
+                                   passive_deletes=True, )
+    childSearchFav = relationship("ConnectionSearchFavorites", back_populates="parent", cascade="all, delete",
+                                  passive_deletes=True, )
 
 
 @dataclass

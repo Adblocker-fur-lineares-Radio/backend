@@ -1,11 +1,16 @@
 import json
 
-from backend.api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
+from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
     update_preferences_for_connection, serialize
 from error import check_valid_stream_request, error
 
 
 def radio_stream_event(connection_id):
+    """
+    Servers response to "stream_request", selecting one radio to be switched to
+    @param connection_id: the specified connection
+    @return: the radio to be switched to with a buffer
+    """
     if connection_id is None:
         print("radio_stream_event: Missing connection_id")
         return error("internal error")
@@ -28,6 +33,11 @@ def radio_stream_event(connection_id):
 
 
 def radio_update_event(radio_id):
+    """
+    Servers radio update
+    @param radio_id: the specified radio
+    @return: the serialized radio object
+    """
     if radio_id is None:
         print("radio_update_event: Missing radio_id")
         return error("internal error")
@@ -44,6 +54,13 @@ def radio_update_event(radio_id):
 
 
 def stream_request(client, connection_id, req):
+    """
+    Client sends list of preferences, gets radio_stream_event response
+    @param client: specified client
+    @param connection_id: specified connection
+    @param req: the requested preference changes
+    @return: -
+    """
     if check_valid_stream_request(client, req):
         update_preferences_for_connection(
             connection_id,
