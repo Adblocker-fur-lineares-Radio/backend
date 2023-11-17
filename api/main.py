@@ -38,7 +38,7 @@ def api(client):
     }
     global connections
     connection_id = insert_new_connection()
-    print(connection_id)
+
     commit()
     connections[connection_id] = client
 
@@ -64,8 +64,8 @@ def api(client):
             rollback()
 
         except ConnectionClosed:
-            delete_connection_from_db(connection_id)
-            commit()
+            # delete_connection_from_db(connection_id)
+            # commit()
             print(f"Server closed connection to: {client}")
             return
 
@@ -77,11 +77,11 @@ def api(client):
             client.close()
             raise e
 
-
+notifier = start_notifier(connections)
 app.run(host="0.0.0.0")
 
 
-notifier = start_notifier(connections)
+
 notifier.join()
 
 

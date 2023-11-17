@@ -271,11 +271,11 @@ def switch_to_working_radio(connection_id):
 
     radio = first(stmt)
 
-    if radio is not None:
+    if radio is None:
         # TODO: add genre fallback
         pass
 
-    if radio is not None:
+    if radio is None:
         # select 'random' radio
         # TODO: give user status about that it doesn't not a preferred radio
         stmt = (select(Radios)

@@ -51,7 +51,7 @@ def stream_request(preferred_radios=None, preferred_genres=None, preferred_exper
     """
     return (json.dumps({
         'type': 'stream_request',
-        'preferred_radios': preferred_radios or [2],
+        'preferred_radios': preferred_radios or [1],
         'preferred_genres': preferred_genres or [1],
         'preferred_experience': preferred_experience or {'ad': False, 'news': True, 'music': True, 'talk': True}
     }))
@@ -76,7 +76,7 @@ async def StartClient():
         await ws.send(stream_request())
         print(f'Client sent: {stream_request()}')
 
-        msg = await asyncio.wait_for(ws.recv(), timeout=30)
+        msg = await asyncio.wait_for(ws.recv(), timeout=300)
         print(f"Client received: {msg}")
 
         data = openJson(msg)
@@ -100,7 +100,7 @@ async def StartClient():
 
         while True:
             try:
-                msg = await asyncio.wait_for(ws.recv(), timeout=30)
+                msg = await asyncio.wait_for(ws.recv(), timeout=300)
                 if msg != "0":
                     print()
                     print(f"Client received: {msg}")

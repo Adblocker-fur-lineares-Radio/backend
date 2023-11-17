@@ -2,7 +2,7 @@ import time
 from threading import Thread
 
 from api.db.database_functions import get_connections_by_radio_and_remaining_updates, \
-    get_radios_that_need_switch_by_time_and_update, commit
+    get_radios_that_need_switch_by_time_and_update, commit, get_connections_by_radio
 from api.search_request import search
 from api.stream_request import radio_stream_event, radio_update_event
 
@@ -26,7 +26,7 @@ def notify_client_stream_guidance(connections, radio_id):
     @param radio_id: the radio that gets updated or switched off from
     @return: -
     """
-    cons = get_connections_by_radio_and_remaining_updates(radio_id)
+    cons = get_connections_by_radio(radio_id)
     for connection, needs_switch in cons:
         if needs_switch:
             connections[connection.id].send(radio_stream_event(connection.id))
@@ -45,6 +45,7 @@ def analyse_radio_stream(connections):
     while True:
         if switch_time is None or switch_time == int(time.strftime('%M', time.localtime())):
             [streams, switch_time] = get_radios_that_need_switch_by_time_and_update()
+            print(switch_time)
             for stream in streams:
                 notify_client_search_update(connections, stream.id)
                 notify_client_stream_guidance(connections, stream.id)
@@ -57,7 +58,7 @@ def start_notifier(connections):
     @param connections:
     @return: the thread
     """
-    analysation = Thread(target=analyse_radio_stream, args=(connections))
+    analysation = Thread(target=analyse_radio_stream, args=(connections,))
     analysation.start()
     return analysation
 
