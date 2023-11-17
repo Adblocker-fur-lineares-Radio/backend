@@ -76,7 +76,7 @@ async def StartClient():
         await ws.send(stream_request())
         print(f'Client sent: {stream_request()}')
 
-        msg = await ws.recv()
+        msg = await asyncio.wait_for(ws.recv(), timeout=30)
         print(f"Client received: {msg}")
 
         data = openJson(msg)

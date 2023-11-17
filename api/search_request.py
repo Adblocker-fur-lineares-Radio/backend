@@ -1,7 +1,7 @@
 import json
 
 from api.db.database_functions import get_connection, get_radio_by_query, \
-    update_search_request_for_connection, get_connection_favorites, update_search_remaining_updates, serialize
+    update_search_request_for_connection, get_connection_favorites, update_search_remaining_updates, serialize, commit
 from error import check_valid_search_update_request, check_valid_search_request, error
 
 
@@ -48,7 +48,7 @@ def search_request(client, connection_id, req):
     @param req: connection information to be changed
     @return: -
     """
-    if check_valid_search_request(client, req):
+    if check_valid_search_request(req, client):
         update_search_request_for_connection(
             connection_id,
             requested_updates=req["requested_updates"],
@@ -68,7 +68,7 @@ def search_update_request(client, connection_id, req):
     @param req: requested updates
     @return: -
     """
-    if check_valid_search_update_request(client, req):
+    if check_valid_search_update_request(req, client):
 
         # FIXME: possible "race condition": reading 'remaining_updates', possibly triggering instant update,
         #  then setting it

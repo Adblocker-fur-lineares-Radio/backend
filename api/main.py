@@ -19,6 +19,7 @@ sock = Sock(app)
 connections = {}
 
 # deletes all residual connections from the db after server reboot
+
 delete_all_connections_from_db()
 commit()
 
@@ -37,6 +38,8 @@ def api(client):
     }
     global connections
     connection_id = insert_new_connection()
+    print(connection_id)
+    commit()
     connections[connection_id] = client
 
 
@@ -77,7 +80,10 @@ def api(client):
 
 app.run(host="0.0.0.0")
 
+
 notifier = start_notifier(connections)
 notifier.join()
+
+
 
 # close()
