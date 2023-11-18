@@ -111,20 +111,18 @@ async def StartClient():
                         remaining_updates = data2["remaining_updates"]
                         # do nothing
 
-                    elif data2["type"] == "radio_switch_event":
+                    elif data2["type"] == "radio_stream_event":
+                        tmp1 = data2["switch_to"]
+
                         player.stop()
-                        media = instance.media_new(data2["switch_to"])
+                        media = instance.media_new(tmp1["stream_url"])
                         player.set_media(media)
                         player.play()
 
                         time.sleep(0.5)  # buffer
                         player.set_pause(1)  # buffer
-                        time.sleep(buffer)  # buffer
+                        time.sleep(data2["buffer"])  # buffer
                         player.play()  # buffer
-
-                    elif data2["type"] == "stream_guidance":
-                        print("Error Client already connected")
-                        return
 
                     elif data2["type"] == "radio_update_event":
                         radio = data2["radio"]
