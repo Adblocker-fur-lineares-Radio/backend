@@ -59,7 +59,7 @@ def serializeRows(rows):
     @param rows: the row or rows returned from a SQLAlchemy Query
     @return: The serialized value and key of multiple rows
     """
-    return [serializeRow(r[0]) for r in rows]
+    return [serializeRow(r) for r in rows]
 
 
 def serialize(rowOrRows):
@@ -159,17 +159,39 @@ def get_radio_by_connection(connection_id):
     @param connection_id: 
     @return: a joined table of the radios and connections
     """
-    stmt = select(Radios, Connections).join(ConnectionPreferredRadios,
-                                            Radios.id == ConnectionPreferredRadios.radio_id).join(Connections,
-                                                                                                  ConnectionPreferredRadios.connection_id == Connections.id)
+    stmt = (select(Radios, Connections)
+            .join(ConnectionPreferredRadios, Radios.id == ConnectionPreferredRadios.radio_id)
+            .join(Connections, ConnectionPreferredRadios.connection_id == connection_id))
     return first(stmt)
+
+
+def get_all_radios():
+    """
+    Queries DB for all radios
+    @return: list of rows with radio entries (empty list if none found)
+    """
+
+    stmt = select(Radios)
+    return all(stmt)
+
+
+def radios_existing(radio_ids):
+    """
+    Checks given list of ids for their existance in the db
+    @param radio_ids list of radio ids
+    @return: true if every id exists
+    """
+
+    stmt = select(func.count()).select_from(Radios).where(Radios.id.in_(radio_ids))
+    count = session.execute(stmt).scalar()
+    return count == len(radio_ids)
 
 
 def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     """
     Queries DB for radioname from query
     @param search_query: the query string to search a radio by. Leave blank to search all
-    @param search_without_ads: defines wether or not radio with ads should be returned
+    @param search_without_ads: defines whether radio with ads should be returned
     @param ids: the favorites to filter for. Leave blank to search all
     @return: list of rows with radio entries (empty list if none found)
     """
@@ -395,7 +417,6 @@ def insert_into_connection_preferred_genres(genre_ids, connection_id):
         session.execute(insert(ConnectionPreferredGenres), [{"genre_id": genre_id, "connection_id": connection_id}])
 
 
-
 def delete_connection_from_db(connection_id):
     """
     Removes all entries from "connections", "connection_search_favorites", "connection_preferred_radios",
@@ -405,13 +426,8 @@ def delete_connection_from_db(connection_id):
 
     """
 
-
-
     stmt = delete(Connections).where(Connections.id == connection_id)
     session.execute(stmt)
-
-
-
 
 
 def delete_all_connections_from_db():
@@ -509,8 +525,6 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
             {"connection_id": connection_id, "genre_id": i}
             for i in preferred_genres
         ])
-
-
 
 
 def xor_(q1, q2):
