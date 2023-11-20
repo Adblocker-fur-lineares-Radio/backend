@@ -11,7 +11,7 @@ from db.database_functions import insert_new_connection, commit, rollback, \
     delete_all_connections_from_db
 from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
-from error import error
+from error import Error
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -42,9 +42,7 @@ def api(client):
     commit()
     connections[connection_id] = client
 
-
     while True:
-        raw = "<Failed>"
         try:
             raw = client.receive()
             data = json.loads(raw)
@@ -52,15 +50,18 @@ def api(client):
             mapping[data['type']](client, connection_id, data)
             commit()
 
-
         except JSONDecodeError:
             print(f"Server sent: {error('Request body is not json')}")
             client.send(error("Request body is not json"))
             rollback()
 
-        except KeyError:
+        except Error as e:
+            client.send(e.to_response())
+            rollback()
+
+        except KeyError as e:
             print(f"Server sent: {error('Request body has incorrect json structure')}")
-            client.send(error("Request body has incorrect json structure"))
+            client.send(Error(f"Request body has incorrect json structure, couldn't find key '{e}'").to_response())
             rollback()
 
         except ConnectionClosed:

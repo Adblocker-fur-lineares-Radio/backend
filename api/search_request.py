@@ -1,8 +1,8 @@
 import json
 
-from api.db.database_functions import get_connection, get_radio_by_query, \
-    update_search_request_for_connection, get_connection_favorites, update_search_remaining_updates, serialize, commit
-from error import check_valid_search_update_request, check_valid_search_request, error
+from api.db.database_functions import get_connection, get_radio_by_query, update_search_remaining_updates, serialize, \
+    commit
+from error import get_or_raise, InternalError
 
 
 def search(connection_id):
@@ -12,32 +12,26 @@ def search(connection_id):
     @return: the connection information in json format
     """
     if connection_id is None:
-        print("search: Missing connection_id")
-        return error("internal error")
-    else:
-        connection = get_connection(connection_id)
-        if connection is None:
-            print("search: Missing connection")
-            return error("internal error")
-        else:
-            favorites = get_connection_favorites(connection_id)
-            if favorites is None:
-                print("search: Missing favorites")
-                return error("internal error")
-            else:
-                radios = get_radio_by_query(
-                    search_query=connection.search_query,
-                    search_without_ads=connection.search_without_ads,
-                    ids=[fav.radio_id for fav in favorites])
+        print("search(): parameter connection_id can't be None")
+        raise InternalError()
 
-                remaining_updates = update_search_remaining_updates(connection_id)
-                commit()
+    connection = get_connection(connection_id)
+    if connection is None:
+        print("search(): Couldn't find connection in database")
+        raise InternalError()
 
-                return json.dumps({
-                    'type': 'search_update',
-                    'radios': serialize(radios),
-                    'remaining_updates': remaining_updates
-                })
+    radios = get_radio_by_query()
+
+    remaining_updates = update_search_remaining_updates(connection_id)
+    commit()
+
+    # TODO: add possibility for advanced filters
+
+    return json.dumps({
+        'type': 'search_update',
+        'radios': serialize(radios),
+        'remaining_updates': remaining_updates
+    })
 
 
 def search_request(client, connection_id, req):
@@ -48,16 +42,14 @@ def search_request(client, connection_id, req):
     @param req: connection information to be changed
     @return: -
     """
-    if check_valid_search_request(req, client):
-        update_search_request_for_connection(
-            connection_id,
-            requested_updates=req["requested_updates"],
-            search_query=req["query"],
-            without_ads=req["filter"]["without_ads"],
-            ids=req["filter"]["ids"]
-        )
-        commit()
-        client.send(search(connection_id))
+
+    # TODO add possibility to have filters
+
+    requested_updates = get_or_raise(req, "requested_updates")
+    update_search_remaining_updates(connection_id, requested_updates)
+    commit()
+
+    client.send(search(connection_id))
 
 
 def search_update_request(client, connection_id, req):
@@ -68,18 +60,17 @@ def search_update_request(client, connection_id, req):
     @param req: requested updates
     @return: -
     """
-    if check_valid_search_update_request(req, client):
 
-        # FIXME: possible "race condition": reading 'remaining_updates', possibly triggering instant update,
-        #  then setting it
-        connection = get_connection(connection_id)
-        if connection is None:
-            print("search_update_request: Missing connection")
-            client.send(error("internal error"))
-        else:
-            instant_update = connection.search_remaining_update <= 0
-            remaining_updates = req['requested_updates']
-            update_search_remaining_updates(connection_id, remaining_updates)
-            commit()
-            if instant_update:
-                client.send(search(connection_id))
+    connection = get_connection(connection_id)
+    if connection is None:
+        print("search_update_request(): Couldn't find connection in database")
+        raise InternalError()
+
+    instant_update = connection.search_remaining_update <= 0
+    remaining_updates = get_or_raise(req, 'requested_updates')
+
+    update_search_remaining_updates(connection_id, remaining_updates)
+    commit()
+
+    if instant_update:
+        client.send(search(connection_id))
