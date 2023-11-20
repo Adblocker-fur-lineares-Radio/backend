@@ -9,7 +9,7 @@ address = "ws://185.233.107.253:5000/api"
 # address = "ws://127.0.0.1:5000/api"
 
 
-def search_request(query, filter_ids=None, filter_without_ads=False, requested_updates=1):
+def search_request(requested_updates=1):
     """
     Look up ServerAPI Documentation (Google Drive)
     @param query: Contains Search-text
@@ -20,12 +20,7 @@ def search_request(query, filter_ids=None, filter_without_ads=False, requested_u
     """
     return (json.dumps({
         'type': 'search_request',
-        'query': query,
-        'requested_updates': requested_updates,
-        'filter': {
-            'ids': filter_ids,
-            'without_ads': filter_without_ads
-        }
+        'requested_updates': requested_updates
     }))
 
 
@@ -41,18 +36,16 @@ def search_update_request(requested_updates=1):
     }))
 
 
-def stream_request(preferred_radios=None, preferred_genres=None, preferred_experience=None):
+def stream_request(preferred_radios=None, preferred_experience=None):
     """
     Look up ServerAPI Documentation (Google Drive)
     @param preferred_radios: One preferred radio or multiple radios
-    @param preferred_genres: One preferred genre or multiple genre
     @param preferred_experience: bool, preferred experience ads-news-music
     @return: json-string
     """
     return (json.dumps({
         'type': 'stream_request',
-        'preferred_radios': preferred_radios or [1],
-        'preferred_genres': preferred_genres or [1],
+        'preferred_radios': preferred_radios,
         'preferred_experience': preferred_experience or {'ad': False, 'news': True, 'music': True, 'talk': True}
     }))
 
@@ -74,14 +67,14 @@ async def StartClient():
     async with websockets.connect(address) as ws:
 
         await ws.send(stream_request())
-        print(f'Client sent: {stream_request()}')
+        print(f'Client sent: {stream_request(preferred_radios=[1, 2])}')
 
         msg = await asyncio.wait_for(ws.recv(), timeout=300)
         print(f"Client received: {msg}")
 
         data = openJson(msg)
         if data["type"] != "radio_stream_event":
-            print("Error No Valid answer received")
+            print(f"Error: No valid answer received: '{data['type']}' instead of 'radio_stream_event'")
             return
         tmp = data["switch_to"]
         current_stream = tmp["stream_url"]
@@ -129,7 +122,7 @@ async def StartClient():
                         # do nothing
 
                     else:
-                        print("Error no matching funktion")
+                        print("Error: No matching function")
                         return
 
             except websockets.exceptions.ConnectionClosedOK:

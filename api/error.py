@@ -33,7 +33,7 @@ def get_or_raise(kv, key):
     return kv[key]
 
 
-def check_valid_stream_request(req, client):
+def check_valid_stream_request(req):
     preferred_radios = get_or_raise(req, "preferred_radios")
     if preferred_radios is None:
         raise Error("'preferred_radios' can't be null")
@@ -47,7 +47,7 @@ def check_valid_stream_request(req, client):
     if not all(isinstance(s, int) for s in preferred_radios):  # check if list-elements are int
         raise Error("every entry in 'preferred_radios' must be an id (integer number)")
 
-    if radios_existing(preferred_radios):
+    if not radios_existing(preferred_radios):
         raise Error("At least one id doesn't exist in the database")
 
     preferred_experience = get_or_raise(req, "preferred_experience")
