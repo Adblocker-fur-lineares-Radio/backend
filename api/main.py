@@ -70,6 +70,7 @@ def api(client):
             # delete_connection_from_db(connection_id)
             # commit()
             print(f"Server closed connection to: {client}")
+            del connections[connection_id]
             return
 
         except Exception as e:
@@ -77,6 +78,7 @@ def api(client):
             commit()
             print(f"########################\n#### Internal Server Error ####")
             rollback()
+            del connections[connection_id]
             client.close()
             raise e
 
