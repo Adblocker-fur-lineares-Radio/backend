@@ -14,7 +14,7 @@ def notify_client_search_update(connections):
     @return: -
     """
     cons = get_connections_by_remaining_updates()
-    for connection in connections:
+    for connection in cons:
         connections[connection].send(search(connection))
 
 
