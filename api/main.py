@@ -51,8 +51,9 @@ def api(client):
             commit()
 
         except JSONDecodeError:
-            print(f"Server sent: {error('Request body is not json')}")
-            client.send(error("Request body is not json"))
+            msg = Error('Request body is not json').to_response()
+            print(f"Server sent: {msg}")
+            client.send(msg)
             rollback()
 
         except Error as e:
@@ -60,8 +61,9 @@ def api(client):
             rollback()
 
         except KeyError as e:
-            print(f"Server sent: {error('Request body has incorrect json structure')}")
-            client.send(Error(f"Request body has incorrect json structure, couldn't find key '{e}'").to_response())
+            msg = Error(f"Request body has incorrect json structure, couldn't find key '{e}'").to_response()
+            print(f"Server sent: {msg}")
+            client.send(msg)
             rollback()
 
         except ConnectionClosed:
