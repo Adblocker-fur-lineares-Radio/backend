@@ -50,15 +50,6 @@ def stream_request(preferred_radios=None, preferred_experience=None):
     }))
 
 
-def openJson(msg):
-    """
-    Converts Json-String in array
-    @param msg: Json-String
-    @return: Array
-    """
-    return json.loads(msg)
-
-
 async def StartClient():
     """
     Starts Client -> connect to server -> asks for radio -> play radio -> permanently polling for update
@@ -66,64 +57,61 @@ async def StartClient():
     """
     async with websockets.connect(address) as ws:
 
-        await ws.send(stream_request())
-        print(f'Client sent: {stream_request(preferred_radios=[1, 2])}')
+        ##############################
+        ##############################
+        commit = stream_request(preferred_radios=[1, 2])
+        ##############################
+        ##############################
 
+        await ws.send(commit)
+        print(f'Client sent: {commit}')
         msg = await asyncio.wait_for(ws.recv(), timeout=300)
         print(f"Client received: {msg}")
 
-        data = openJson(msg)
+        data = json.loads(msg)
         if data["type"] != "radio_stream_event":
             print(f"Error: No valid answer received: '{data['type']}' instead of 'radio_stream_event'")
             return
-        tmp = data["switch_to"]
-        current_stream = tmp["stream_url"]
-        buffer = data["buffer"]
 
         instance = vlc.Instance()
         player = instance.media_player_new()
-        media = instance.media_new(current_stream)
+        media = instance.media_new(data["switch_to"]["stream_url"])
         player.set_media(media)
         player.play()
 
         time.sleep(0.5)  # buffer
         player.set_pause(1)  # buffer
-        time.sleep(buffer)  # buffer
+        time.sleep(data["buffer"])  # buffer
         player.play()  # buffer
 
         while True:
             try:
                 msg = await asyncio.wait_for(ws.recv(), timeout=300)
-                if msg != "0":
-                    print()
-                    print(f"Client received: {msg}")
-                    data2 = openJson(msg)
+                print()
+                print(f"Client received: {msg}")
+                data2 = json.loads(msg)
 
-                    if data2["type"] == "search_update":
-                        radios = data2["radios"]
-                        remaining_updates = data2["remaining_updates"]
-                        # do nothing
+                if data2["type"] == "search_update":
+                    pass
 
-                    elif data2["type"] == "radio_stream_event":
-                        tmp1 = data2["switch_to"]
+                elif data2["type"] == "radio_stream_event":
 
-                        player.stop()
-                        media = instance.media_new(tmp1["stream_url"])
-                        player.set_media(media)
-                        player.play()
+                    player.stop()
+                    media = instance.media_new(data2["switch_to"]["stream_url"])
+                    player.set_media(media)
+                    player.play()
 
-                        time.sleep(0.5)  # buffer
-                        player.set_pause(1)  # buffer
-                        time.sleep(data2["buffer"])  # buffer
-                        player.play()  # buffer
+                    time.sleep(0.5)  # buffer
+                    player.set_pause(1)  # buffer
+                    time.sleep(data2["buffer"])  # buffer
+                    player.play()  # buffer
 
-                    elif data2["type"] == "radio_update_event":
-                        radio = data2["radio"]
-                        # do nothing
+                elif data2["type"] == "radio_update_event":
+                    pass
 
-                    else:
-                        print("Error: No matching function")
-                        return
+                else:
+                    print("Error: No matching function")
+                    return
 
             except websockets.exceptions.ConnectionClosedOK:
                 pass
