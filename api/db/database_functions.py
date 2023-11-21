@@ -210,6 +210,16 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     return all(stmt)
 
 
+def get_connections_by_remaining_updates():
+    """
+    Queries DB for a connection with the current radio
+    equal to the specified radio_id that has more than 0 remaining updates
+    @return: the connections as an untupled list of rows
+    """
+    stmt = (select(Connections).where(Connections.search_remaining_update > 0))
+    return all(stmt)
+
+
 '''
 def get_connections_by_radio(radio_id):
     """
