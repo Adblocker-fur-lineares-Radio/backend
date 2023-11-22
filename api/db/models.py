@@ -108,6 +108,7 @@ class ConnectionPreferredRadios(Base):
 
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
+    priority: Mapped[int] = mapped_column(Integer)
 
     # parent = relationship("Connections", back_populates="childPrefRadios")
 

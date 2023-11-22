@@ -283,7 +283,7 @@ def switch_to_working_radio(connection_id):
 
     stmt = (select(Radios).join(ConnectionPreferredRadios, Radios.id == ConnectionPreferredRadios.radio_id)
             .where(ConnectionPreferredRadios.connection_id == connection_id)
-            .where(Radios.status_id.in_(allowed_states)))
+            .where(Radios.status_id.in_(allowed_states)).order_by(ConnectionPreferredRadios.priority.asc()))
 
     radio = first(stmt)
 
@@ -505,9 +505,11 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     session.execute(stmt)
 
     if isinstance(preferred_radios, list) and len(preferred_radios) > 0:
+        prio = 1
         for i in preferred_radios:
-            stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i)
+            stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i, priority=prio)
             session.execute(stmt)
+            prio+=1
         commit()
 
     stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
