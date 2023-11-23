@@ -542,8 +542,7 @@ def get_radios_that_need_switch_by_time_and_update():
     Querys the DB for the radios that need to be switched away from
     @return: the list of rows of radios
     """
-    now = func.now()
-
+    now = func.current_timestamp()
     # if inDerZeitVonWerbung xor status == 'werbung'
 
     hour_check = func.date_part('hour', now).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
@@ -577,7 +576,6 @@ def get_radios_that_need_switch_by_time_and_update():
               .where(RadioAdTime.ad_end_time > func.date_part('minute', now)))
 
     next_end_min = untuple(session.execute(stmt4b))
-
     if next_end_min[0] is not None and next_start_min[0] is not None:
         next_event = min(next_end_min[0], next_start_min[0])
     elif next_end_min[0] is not None:
@@ -590,7 +588,7 @@ def get_radios_that_need_switch_by_time_and_update():
 
         next_start_min = untuple(session.execute(stmt5a))
 
-        stmt5b = (select(func.min(RadioAdTime.ad_start_time))
+        stmt5b = (select(func.min(RadioAdTime.ad_end_time))
                   .where(RadioAdTime.ad_end_time <= func.date_part('minute', now)))
 
         next_end_min = untuple(session.execute(stmt5b))
