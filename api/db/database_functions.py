@@ -537,11 +537,11 @@ def xor_(q1, q2):
 
 
 
-def get_radios_that_need_switch_by_time_and_update():
+def get_radios_that_need_switch_by_time_and_update(now_min):
     """
     Querys the DB for the radios that need to be switched away from
     @return: the list of rows of radios
-    """
+    #"""
     now = func.current_timestamp()
     # if inDerZeitVonWerbung xor status == 'werbung'
 
@@ -568,12 +568,12 @@ def get_radios_that_need_switch_by_time_and_update():
     session.execute(stmt3)
 
     stmt4a = (select(func.min(RadioAdTime.ad_start_time))
-              .where(RadioAdTime.ad_start_time > func.date_part('minute', now)))
+              .where(RadioAdTime.ad_start_time > now_min))
 
     next_start_min = untuple(session.execute(stmt4a))
 
     stmt4b = (select(func.min(RadioAdTime.ad_end_time))
-              .where(RadioAdTime.ad_end_time > func.date_part('minute', now)))
+              .where(RadioAdTime.ad_end_time > now_min))
 
     next_end_min = untuple(session.execute(stmt4b))
     if next_end_min[0] is not None and next_start_min[0] is not None:
@@ -584,12 +584,12 @@ def get_radios_that_need_switch_by_time_and_update():
         next_event = next_start_min[0]
     else:
         stmt5a = (select(func.min(RadioAdTime.ad_start_time))
-                  .where(RadioAdTime.ad_start_time <= func.date_part('minute', now)))
+                  .where(RadioAdTime.ad_start_time <= now_min))
 
         next_start_min = untuple(session.execute(stmt5a))
 
         stmt5b = (select(func.min(RadioAdTime.ad_end_time))
-                  .where(RadioAdTime.ad_end_time <= func.date_part('minute', now)))
+                  .where(RadioAdTime.ad_end_time <= now_min))
 
         next_end_min = untuple(session.execute(stmt5b))
         if next_end_min[0] is not None and next_start_min[0] is not None:
