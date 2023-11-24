@@ -26,7 +26,6 @@ def notify_client_stream_guidance(connections, radio_id):
     @return: -
     """
     cons = get_connections_id_by_radio(radio_id)
-    print(cons)
     for connection in cons[0]:
         connections[connection].send(radio_stream_event(connection))
 
