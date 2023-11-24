@@ -1,0 +1,11 @@
+- install mysql https://dev.mysql.com/downloads/installer/
+- install FFmpeg https://phoenixnap.com/kb/ffmpeg-windows
+
+pip install git+https://github.com/grayarrow/dejavu.git
+pip install mysql-connector-python
+pip install numpy
+pip install pydub
+pip install wavio
+pip install matplotlib
+pip install scipy
+
