@@ -26,7 +26,7 @@ class Radios(Base):
     current_interpret: Mapped[Optional[str]] = mapped_column(Text)
     stream_url: Mapped[str] = mapped_column(Text)
     logo_url: Mapped[str] = mapped_column(Text)
-
+    station_id: Mapped[str] = mapped_column(Text)
 
 @dataclass
 class RadioStates(Base):

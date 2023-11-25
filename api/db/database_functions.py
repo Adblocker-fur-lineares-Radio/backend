@@ -509,7 +509,7 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
         for i in preferred_radios:
             stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i, priority=prio)
             session.execute(stmt)
-            prio+=1
+            prio += 1
         commit()
 
     stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
@@ -534,7 +534,6 @@ def xor_(q1, q2):
         and_(not_(q1), q2),
         and_(not_(q2), q1)
     )
-
 
 
 def get_radios_that_need_switch_by_time_and_update(now_min):
@@ -603,3 +602,19 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
         else:
             next_event = None
     return [switch_radios, next_event]
+
+
+def get_radios_and_update_by_currently_playing(data):
+    radios = []
+    for item in data:
+        title, station_id = item['title'], item['stationId']
+        stmt = select(Radios).where(Radios.currently_playing != title).where(Radios.station_id == station_id)
+        result = first(stmt)
+
+        if result is not None:
+            radios.append(result)
+
+        stmt2 = update(Radios).where(Radios.station_id == station_id).values(currently_playing=title)
+        session.execute(stmt2)
+
+    return radios
