@@ -136,7 +136,7 @@ def test():
         },
     }
     djv = Dejavu(config)
-    djv.fingerprint_directory(r"C:\Users\kaany\Desktop\geschnitten", [".wav"])
+    djv.fingerprint_directory(r"..\OrginalAudio", [".wav"])
     print(djv.db.get_num_fingerprints())
 
     # print(djv.recognize(FileRecognizer, r"C:\Users\kaany\Desktop\WerbungTest.mp3"))
