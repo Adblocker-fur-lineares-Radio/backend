@@ -67,8 +67,8 @@ def api(client):
             rollback()
 
         except ConnectionClosed:
-            # delete_connection_from_db(connection_id)
-            # commit()
+            delete_connection_from_db(connection_id)
+            commit()
             print(f"Server closed connection to: {client}")
             del connections[connection_id]
             return
