@@ -88,7 +88,7 @@ def metadata_processing(connections):
             notify_client_stream_guidance(connections, stream.id)
             notify_client_search_update(connections)
             commit()
-        time.sleep(30)
+        time.sleep(15)
 
 def start_notifier(connections):
     """

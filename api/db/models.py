@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-
-from sqlalchemy import Integer, ForeignKey, Text, Boolean
+import datetime
+from sqlalchemy import Integer, ForeignKey, Text, Boolean, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import MetaData
 from typing import Optional
@@ -121,3 +121,14 @@ class ConnectionPreferredGenres(Base):
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
 
     # parent = relationship("Connections", back_populates="childPrefGenres")
+
+
+@dataclass
+class RadioMetadata(Base):
+    __tablename__ = 'radio_metadata'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    station_id: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(Text)
+    interpret: Mapped[str] = mapped_column(Text)
+    timestamp: Mapped[datetime] = mapped_column(TIMESTAMP)

@@ -5,7 +5,7 @@ from sqlalchemy.orm import *
 from sqlalchemy.orm import sessionmaker
 from api.db import create_and_connect_to_db
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
-    ConnectionPreferredGenres, RadioGenres, RadioAdTime
+    ConnectionPreferredGenres, RadioGenres, RadioAdTime, RadioMetadata
 
 # create session with the db
 Session = sessionmaker(bind=create_and_connect_to_db.engine)
@@ -608,13 +608,39 @@ def get_radios_and_update_by_currently_playing(data):
     radios = []
     for item in data:
         title, station_id = item['title'], item['stationId']
-        stmt = select(Radios).where(Radios.currently_playing != title).where(Radios.station_id == station_id)
+        currently_playing = title.split(': ')
+
+        if len(currently_playing) == 1:
+            currently_playing = title.split(' - ')
+
+        if len(currently_playing) == 1:
+            currently_playing[1] = None
+
+        stmt = (select(Radios)
+                .where(Radios.currently_playing != currently_playing[1])
+                .where(Radios.current_interpret != currently_playing[0])
+                .where(Radios.station_id == station_id))
         result = first(stmt)
 
         if result is not None:
             radios.append(result)
 
-        stmt2 = update(Radios).where(Radios.station_id == station_id).values(currently_playing=title)
-        session.execute(stmt2)
+        latest_played_song = first((select(RadioMetadata)
+                                   .where(RadioMetadata.station_id == station_id)
+                                   .order_by(RadioMetadata.id.desc())))
+
+        if (latest_played_song is None or
+                latest_played_song.title != currently_playing[1] and
+                latest_played_song.interpret != currently_playing[0]):
+            stmt2 = (insert(RadioMetadata).values(station_id=station_id,
+                                                  title=currently_playing[1],
+                                                  interpret=currently_playing[0],
+                                                  timestamp=datetime.now()))
+            session.execute(stmt2)
+
+        stmt3 = update(Radios).where(Radios.station_id == station_id).values(
+            current_interpret=currently_playing[0],
+            currently_playing=currently_playing[1])
+        session.execute(stmt3)
 
     return radios
