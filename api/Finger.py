@@ -6,6 +6,7 @@ from urllib.request import urlopen
 import os
 import threading
 from datetime import datetime
+from pydub.exceptions import CouldntDecodeError
 
 
 def test(Url, Offset, Dauer , FingerThreshold):
@@ -52,10 +53,13 @@ def test(Url, Offset, Dauer , FingerThreshold):
     sys.stdout.flush()
     f1.close()
 
-    if os.stat(fname1).st_size > 0:
-        finger = djv.recognize(FileRecognizer, fname1)
-        if finger and finger["confidence"] > fingerThreshold:
-            print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
+    try:
+        if os.stat(fname1).st_size > 0:
+            finger = djv.recognize(FileRecognizer, fname1)
+            if finger and finger["confidence"] > fingerThreshold:
+                print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
+    except CouldntDecodeError as e:
+        print("Error " + str(e))
 
     os.remove(fname1)
 
@@ -73,16 +77,16 @@ def test(Url, Offset, Dauer , FingerThreshold):
                 sys.stdout.flush()
 
         f2.close()
-        #sys.stdout.flush()
 
-        if os.stat(fname2).st_size > 0:
-            finger2 = djv.recognize(FileRecognizer, fname2)
-            if finger2 and finger2["confidence"] > fingerThreshold:
-                print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
+        try:
+            if os.stat(fname2).st_size > 0:
+                finger2 = djv.recognize(FileRecognizer, fname2)
+                if finger2 and finger2["confidence"] > fingerThreshold:
+                    print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
+        except CouldntDecodeError as e:
+            print("Error " + str(e))
 
 
-        # os.remove(fname2)
-        # fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
         f2 = open(fname2, 'wb')
         sys.stdout.flush()
         i += 1
@@ -96,24 +100,20 @@ def test(Url, Offset, Dauer , FingerThreshold):
                 f2.write(audio)
                 sys.stdout.flush()
 
-
         f3.close()
-        #sys.stdout.flush()
 
-        if os.stat(fname3).st_size > 0:
-            finger3 = djv.recognize(FileRecognizer, fname3)
-            if finger3 and finger3["confidence"] > fingerThreshold:
-                print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
+        try:
+            if os.stat(fname3).st_size > 0:
+                finger3 = djv.recognize(FileRecognizer, fname3)
+                if finger3 and finger3["confidence"] > fingerThreshold:
+                    print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
+        except CouldntDecodeError as e:
+            print("Error " + str(e))
 
-
-        # os.remove(fname3)
-        # fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
         f3 = open(fname3, 'wb')
         sys.stdout.flush()
         i += 1
 
-        #except Exception as e:
-            #print("Error " + str(e))
 
 def p():
     config = {
@@ -125,16 +125,19 @@ def p():
         },
     }
     djv = Dejavu(config)
+    try:
+        if os.stat("3_92.7495056.wav").st_size > 0:
+            finger = djv.recognize(FileRecognizer, "3_92.7495056.wav")
+            if finger and finger["confidence"] > 0:
+                print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
+    except CouldntDecodeError as e:
+        print("Error " + str(e))
 
-    if os.stat("2_14.7695461.wav").st_size > 0:
-        finger = djv.recognize(FileRecognizer, "2_14.7695461.wav")
-        if finger and finger["confidence"] > 0:
-            print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
 
 
 if __name__ == '__main__':
     #test("https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de", 2, 10, 10)
-    # p()
+    #p()
     x = threading.Thread(target=test, args=("https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de", 2, 10, 10))
     x.start()
 
