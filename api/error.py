@@ -41,17 +41,15 @@ def check_valid_stream_request(req):
     if not isinstance(preferred_radios, list):  # check if value is a list
         raise Error("'preferred_radios' must be a list")
 
-    if len(preferred_radios) == 0:  # check if list is empty
-        raise Error("'preferred_radios' must contain entries")
+    if len(preferred_radios) > 0:  # check if list is empty
+        if not all(isinstance(s, int) for s in preferred_radios):  # check if list-elements are int
+            raise Error("every entry in 'preferred_radios' must be an id (integer number)")
 
-    if not all(isinstance(s, int) for s in preferred_radios):  # check if list-elements are int
-        raise Error("every entry in 'preferred_radios' must be an id (integer number)")
+        if len(set(preferred_radios)) != len(preferred_radios):
+            raise Error("'preferred_radios' mustn't have duplicate ids")
 
-    if len(set(preferred_radios)) != len(preferred_radios):
-        raise Error("'preferred_radios' mustn't have duplicate ids")
-
-    if not radios_existing(preferred_radios):
-        raise Error("At least one id doesn't exist in the database")
+        if not radios_existing(preferred_radios):
+            raise Error("At least one id doesn't exist in the database")
 
     preferred_experience = get_or_raise(req, "preferred_experience")
 
