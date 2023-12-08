@@ -48,8 +48,8 @@ def test(Url, Offset, Dauer , FingerThreshold):
         except Exception as e:
             print("Error " + str(e))
 
-    f1.close()
     sys.stdout.flush()
+    f1.close()
 
     finger = djv.recognize(FileRecognizer, fname1)
     if finger and finger["confidence"] > fingerThreshold:
@@ -69,8 +69,8 @@ def test(Url, Offset, Dauer , FingerThreshold):
                     f3.write(audio)
                     sys.stdout.flush()
 
-            f2.close()
             sys.stdout.flush()
+            f2.close()
 
             finger2 = djv.recognize(FileRecognizer, fname2)
             if finger2 and finger2["confidence"] > fingerThreshold:
@@ -91,8 +91,8 @@ def test(Url, Offset, Dauer , FingerThreshold):
                     f2.write(audio)
                     sys.stdout.flush()
 
-            f3.close()
             sys.stdout.flush()
+            f3.close()
             finger3 = djv.recognize(FileRecognizer, fname3)
             if finger3 and finger3["confidence"] > fingerThreshold:
                 print(finger3)
