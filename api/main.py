@@ -12,6 +12,13 @@ from db.database_functions import insert_new_connection, commit, rollback, \
 from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 from error import Error
+import logging
+from logs.logging_config import configure_logging
+
+configure_logging()
+logger = logging.getLogger("main.py")
+
+logger.info("START")
 
 app = Flask(__name__)
 sock = Sock(app)
@@ -22,6 +29,7 @@ connections = {}
 
 delete_all_connections_from_db()
 commit()
+
 
 # default page route specification
 @app.route("/")
@@ -46,13 +54,13 @@ def api(client):
         try:
             raw = client.receive()
             data = json.loads(raw)
-            print(f"got request '{data['type']}': {raw}")
+            logger.info(f"got request '{data['type']}': {raw}")
             mapping[data['type']](client, connection_id, data)
             commit()
 
         except JSONDecodeError:
             msg = Error('Request body is not json').to_response()
-            print(f"Server sent: {msg}")
+            logger.info(f"Server sent: {msg}")
             client.send(msg)
             rollback()
 
@@ -62,33 +70,30 @@ def api(client):
 
         except KeyError as e:
             msg = Error(f"Request body has incorrect json structure, couldn't find key '{e}'").to_response()
-            print(f"Server sent: {msg}")
+            logger.error(f"Server sent: {msg}")
             client.send(msg)
             rollback()
 
         except ConnectionClosed:
             delete_connection_from_db(connection_id)
             commit()
-            print(f"Server closed connection to: {client}")
+            logger.error(f"Server closed connection to: {client}")
             del connections[connection_id]
             return
 
         except Exception as e:
             delete_connection_from_db(connection_id)
             commit()
-            print(f"########################\n#### Internal Server Error ####")
+            logger.critical(f"########################\n#### Internal Server Error ####")
             rollback()
             del connections[connection_id]
             client.close()
             raise e
 
+
 notifier = start_notifier(connections)
 app.run(host="0.0.0.0")
 
-
-
 notifier.join()
-
-
 
 # close()

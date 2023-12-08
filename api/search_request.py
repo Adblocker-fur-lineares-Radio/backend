@@ -3,6 +3,11 @@ import json
 from api.db.database_functions import get_connection, get_radio_by_query, update_search_remaining_updates, serialize, \
     commit
 from error import get_or_raise, InternalError
+import logging
+from logs.logging_config import configure_logging
+configure_logging()
+
+logger = logging.getLogger("search_request.py")
 
 
 def search(connection_id):
@@ -12,12 +17,12 @@ def search(connection_id):
     @return: the connection information in json format
     """
     if connection_id is None:
-        print("search(): parameter connection_id can't be None")
+        logger.error("search(): parameter connection_id can't be None")
         raise InternalError()
 
     connection = get_connection(connection_id)
     if connection is None:
-        print("search(): Couldn't find connection in database")
+        logger.error("search(): Couldn't find connection in database")
         raise InternalError()
 
     radios = get_radio_by_query()
@@ -63,7 +68,7 @@ def search_update_request(client, connection_id, req):
 
     connection = get_connection(connection_id)
     if connection is None:
-        print("search_update_request(): Couldn't find connection in database")
+        logger.error("search_update_request(): Couldn't find connection in database")
         raise InternalError()
 
     instant_update = connection.search_remaining_update <= 0

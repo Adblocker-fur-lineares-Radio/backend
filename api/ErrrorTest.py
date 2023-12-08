@@ -1,4 +1,9 @@
 import json
+import logging
+from logs.logging_config import configure_logging
+configure_logging()
+
+logger = logging.getLogger("ErrorTest.py")
 
 
 def error(msg):
@@ -17,22 +22,22 @@ def check_valid_stream_request(req):
                         if all(0 < i < 7 for i in req["preferred_radios"]):  # check if list-elements are valid indexes
                             pass
                         else:
-                            print(error('stream_request: Invalid indexes in preferred_radios'))
+                            logger.error(error('stream_request: Invalid indexes in preferred_radios'))
                             return False
                     else:
-                        print(error('stream_request: All/Some elements of preferred_radios aren´t strings'))
+                        logger.error(error('stream_request: All/Some elements of preferred_radios aren´t strings'))
                         return False
                 else:
-                    print(error('stream_request: preferred_radios List is empty'))
+                    logger.error(error('stream_request: preferred_radios List is empty'))
                     return False
             else:
-                print(error('stream_request: preferred_radios is not a list'))
+                logger.error(error('stream_request: preferred_radios is not a list'))
                 return False
         else:
-            print(error('stream_request: Missing Value for preferred_radios'))
+            logger.error(error('stream_request: Missing Value for preferred_radios'))
             return False
     else:
-        print(error('stream_request: Missing Key preferred_radios'))
+        logger.error(error('stream_request: Missing Key preferred_radios'))
         return False
 
     if "preferred_genres" in req:
@@ -43,22 +48,22 @@ def check_valid_stream_request(req):
                         if all(0 < i < 7 for i in req["preferred_genres"]):
                             pass
                         else:
-                            print(error('stream_request: Invalid indexes in preferred_genres'))
+                            logger.error(error('stream_request: Invalid indexes in preferred_genres'))
                             return False
                     else:
-                        print(error('stream_request: All/Some elements of preferred_genres aren´t strings'))
+                        logger.error(error('stream_request: All/Some elements of preferred_genres aren´t strings'))
                         return False
                 else:
-                    print(error('stream_request: preferred_genres List is empty'))
+                    logger.error(error('stream_request: preferred_genres List is empty'))
                     return False
             else:
-                print(error('stream_request: preferred_genres is not a list'))
+                logger.error(error('stream_request: preferred_genres is not a list'))
                 return False
         else:
-            print(error('stream_request: Missing Value for preferred_genres'))
+            logger.error(error('stream_request: Missing Value for preferred_genres'))
             return False
     else:
-        print(error('stream_request: Missing Key preferred_genres'))
+        logger.error(error('stream_request: Missing Key preferred_genres'))
         return False
 
     if "preferred_experience" in req:
@@ -73,26 +78,26 @@ def check_valid_stream_request(req):
                             if all(isinstance(s, bool) for s in req["preferred_experience"].values()):
                                 pass
                             else:
-                                print(error('stream_request/preferred_experience: All/Some values in dict are '
+                                logger.error(error('stream_request/preferred_experience: All/Some values in dict are '
                                             'not bool'))
                                 return False
                         else:
-                            print(error('stream_request/preferred_experience: missing values in dict'))
+                            logger.error(error('stream_request/preferred_experience: missing values in dict'))
                             return False
                     else:
-                        print(error('stream_request/preferred_experience: missing keys in dict'))
+                        logger.error(error('stream_request/preferred_experience: missing keys in dict'))
                         return False
                 else:
-                    print(error('stream_request: preferred_experience dict is empty'))
+                    logger.error(error('stream_request: preferred_experience dict is empty'))
                     return False
             else:
-                print(error('stream_request: preferred_experience is not a dict'))
+                logger.error(error('stream_request: preferred_experience is not a dict'))
                 return False
         else:
-            print(error('stream_request: Missing Value for preferred_experience'))
+            logger.error(error('stream_request: Missing Value for preferred_experience'))
             return False
     else:
-        print(error('stream_request: Missing Key preferred_experience'))
+        logger.error(error('stream_request: Missing Key preferred_experience'))
         return False
     return True
 
@@ -104,16 +109,16 @@ def check_valid_search_update_request(req):
                 if req["requested_updates"] > 0:
                     pass
                 else:
-                    print(error('search_update_request: value for key requested_updates is < 1'))
+                    logger.error(error('search_update_request: value for key requested_updates is < 1'))
                     return False
             else:
-                print(error('search_update_request: value for key requested_updates is not an int'))
+                logger.error(error('search_update_request: value for key requested_updates is not an int'))
                 return False
         else:
-            print(error('search_update_request: value for key requested_updates does not exist'))
+            logger.error(error('search_update_request: value for key requested_updates does not exist'))
             return False
     else:
-        print(error('search_update_request: key requested_updates does not exist'))
+        logger.error(error('search_update_request: key requested_updates does not exist'))
         return False
     return True
 
@@ -125,16 +130,16 @@ def check_valid_search_request(req):
                 if req["requested_updates"] > 0:
                     pass
                 else:
-                    print(error('search_request/requested_updates: Value is < 0'))
+                    logger.error(error('search_request/requested_updates: Value is < 0'))
                     return False
             else:
-                print(error('search_request/requested_updates: Value is not an int'))
+                logger.error(error('search_request/requested_updates: Value is not an int'))
                 return False
         else:
-            print(error('search_request/requested_updates: No Value'))
+            logger.error(error('search_request/requested_updates: No Value'))
             return False
     else:
-        print(error('search_request: No key requested_updates'))
+        logger.error(error('search_request: No key requested_updates'))
         return False
 
     if "query" in req:
@@ -143,16 +148,16 @@ def check_valid_search_request(req):
                 if req["query"] != "":
                     pass
                 else:
-                    print(error('search_request/query: invalid Value for query'))
+                    logger.error(error('search_request/query: invalid Value for query'))
                     return False
             else:
-                print(error('search_request/query: Value is not a str'))
+                logger.error(error('search_request/query: Value is not a str'))
                 return False
         else:
-            print(error('search_request/query: No Value'))
+            logger.error(error('search_request/query: No Value'))
             return False
     else:
-        print(error('search_request: No key query'))
+        logger.error(error('search_request: No key query'))
         return False
 
     if "filter" in req:
@@ -167,40 +172,40 @@ def check_valid_search_request(req):
                                         if all(0 < i < 7 for i in req["filter"]["ids"]):
                                             pass
                                         else:
-                                            print(error('search_request/filter/ids: Some/all Values is list are not '
+                                            logger.error(error('search_request/filter/ids: Some/all Values is list are not '
                                                         'valid indexes'))
                                             return False
                                     else:
-                                        print(error('search_request/filter/ids: Some/all Values in list are not int'))
+                                        logger.error(error('search_request/filter/ids: Some/all Values in list are not int'))
                                         return False
                                 else:
-                                    print(error('search_request/filter/ids: list is empty'))
+                                    logger.error(error('search_request/filter/ids: list is empty'))
                                     return False
                             else:
-                                print(error('search_request/filter/ids: Values is not a list'))
+                                logger.error(error('search_request/filter/ids: Values is not a list'))
                                 return False
                             if isinstance(req["filter"]["without_ads"], bool):
                                 pass
                             else:
-                                print(error('search_request/filter/without_ads: Values is not a bool'))
+                                logger.error(error('search_request/filter/without_ads: Values is not a bool'))
                                 return False
                         else:
-                            print(error('search_request/filter/ids.without_ads: No Values'))
+                            logger.error(error('search_request/filter/ids.without_ads: No Values'))
                             return False
                     else:
-                        print(error('search_request/filter/ids.without_ads: No keys ids / without_ads'))
+                        logger.error(error('search_request/filter/ids.without_ads: No keys ids / without_ads'))
                         return False
                 else:
-                    print(error('search_request/filter: dict is empty'))
+                    logger.error(error('search_request/filter: dict is empty'))
                     return False
             else:
-                print(error('search_request/filter: Value is not a dict'))
+                logger.error(error('search_request/filter: Value is not a dict'))
                 return False
         else:
-            print(error('search_request/filter: No Value'))
+            logger.error(error('search_request/filter: No Value'))
             return False
     else:
-        print(error('search_request: No key filter'))
+        logger.error(error('search_request: No key filter'))
         return False
     return True
 
@@ -236,7 +241,7 @@ def stream_request():
 
 def play():
     data = json.loads(search_request("1", 1))
-    print(check_valid_search_request(data))
+    logger.error(check_valid_search_request(data))
 
 
 if __name__ == '__main__':

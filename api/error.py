@@ -49,7 +49,7 @@ def check_valid_stream_request(req):
             raise Error("'preferred_radios' mustn't have duplicate ids")
 
         if not radios_existing(preferred_radios):
-            raise Error("At least one id doesn't exist in the database")
+            raise Error("Atleast one id doesn't exist in the database")
 
     preferred_experience = get_or_raise(req, "preferred_experience")
 

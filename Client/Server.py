@@ -1,6 +1,12 @@
 import asyncio
 import websockets
 import json
+import logging
+from logs.logging_config import configure_logging
+
+configure_logging()
+
+logger = logging.getLogger("Server.py")
 
 
 def stream_guidance_wdr():
@@ -60,21 +66,20 @@ async def hello(websocket):
     @return: None
     """
     streamRequest = await websocket.recv()
-    print(f'Server Received: {streamRequest}')
+    logger.info(f'Server Received: {streamRequest}')
 
     await websocket.send(stream_guidance_wdr())
-    print(f'Server Sent: {stream_guidance_wdr()}')
+    logger.info(f'Server Sent: {stream_guidance_wdr()}')
 
     await asyncio.sleep(5)
 
     await websocket.send(switch_to_test())
-    print(f'Server Sent: {switch_to_test()}')
+    logger.info(f'Server Sent: {switch_to_test()}')
 
     await asyncio.sleep(10)
 
     await websocket.send(switch_to_test2())
-    print(f'Server Sent: {switch_to_test2()}')
-
+    logger.info(f'Server Sent: {switch_to_test2()}')
 
 
 async def main():

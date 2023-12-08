@@ -3,7 +3,12 @@ import json
 from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
     update_preferences_for_connection, serialize, commit
 from error import check_valid_stream_request, InternalError, Error
+import logging
 
+from logs.logging_config import configure_logging
+configure_logging()
+
+logger = logging.getLogger("stream_request.py")
 
 def radio_stream_event(connection_id):
     """
@@ -12,7 +17,7 @@ def radio_stream_event(connection_id):
     @return: the radio to be switched to with a buffer
     """
     if connection_id is None:
-        print("radio_stream_event(): parameter connection_id can't be None")
+        logger.error("radio_stream_event(): parameter connection_id can't be None")
         raise InternalError()
 
     radio_id = switch_to_working_radio(connection_id)
@@ -23,7 +28,7 @@ def radio_stream_event(connection_id):
 
     radio = get_radio_by_id(radio_id)
     if radio is None:
-        print("radio_stream_event(): Couldn't find radio by id (id previously given by switch_to_working_radio())")
+        logger.error("radio_stream_event(): Couldn't find radio by id (id previously given by switch_to_working_radio())")
         raise InternalError()
 
     return json.dumps({
@@ -40,12 +45,12 @@ def radio_update_event(radio_id):
     @return: the serialized radio object
     """
     if radio_id is None:
-        print("radio_update_event(): Parameter radio_id mustn't be None")
+        logger.error("radio_update_event(): Parameter radio_id mustn't be None")
         raise InternalError()
 
     radio = get_radio_by_id(radio_id)
     if radio is None:
-        print("radio_update_event(): given radio_id doesn't lead to an entry in db")
+        logger.error("radio_update_event(): given radio_id doesn't lead to an entry in db")
         raise InternalError()
 
     return json.dumps({
