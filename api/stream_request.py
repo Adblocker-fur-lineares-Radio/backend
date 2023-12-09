@@ -2,7 +2,7 @@ import json
 
 from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
     update_preferences_for_connection
-from api.db.db_helpers import GetSession, serialize
+from api.db.db_helpers import NewTransaction, serialize
 from error import check_valid_stream_request, InternalError, Error
 import logging
 
@@ -21,11 +21,9 @@ def stream_request(client, connection_id, req):
     @return: -
     """
 
-
-    with GetSession() as session:
-        check_valid_stream_request(session, req)
+    with NewTransaction():
+        check_valid_stream_request(req)
         update_preferences_for_connection(
-            session,
             connection_id,
             preferred_radios=req["preferred_radios"],
             preference_ad=req["preferred_experience"]["ad"],
@@ -33,11 +31,11 @@ def stream_request(client, connection_id, req):
             preference_music=req["preferred_experience"]["music"],
             preference_news=req["preferred_experience"]["news"]
         )
-        response = radio_stream_event(session, connection_id)
+        response = radio_stream_event(connection_id)
     client.send(response)
 
 
-def radio_stream_event(session, connection_id):
+def radio_stream_event(connection_id):
     """
     Servers response to "stream_request", selecting one radio to be switched to
     @param connection_id: the specified connection
@@ -46,12 +44,12 @@ def radio_stream_event(session, connection_id):
     if connection_id is None:
         raise InternalError(logger, "radio_stream_event(): parameter connection_id can't be None")
 
-    radio_id = switch_to_working_radio(session, connection_id)
+    radio_id = switch_to_working_radio(connection_id)
 
     if radio_id is None:
         raise Error("Couldn't find any radio to switch to. We are sorry.")
 
-    radio = get_radio_by_id(session, radio_id)
+    radio = get_radio_by_id(radio_id)
     if radio is None:
         raise InternalError(logger, "radio_stream_event(): Couldn't find radio by id (id previously given by switch_to_working_radio())")
 
@@ -62,16 +60,17 @@ def radio_stream_event(session, connection_id):
     })
 
 
-def radio_update_event(session, radio_id):
+def radio_update_event(radio_id):
     """
     Servers radio update
     @param radio_id: the specified radio
     @return: the serialized radio object
     """
+
     if radio_id is None:
         raise InternalError(logger, "radio_update_event(): Parameter radio_id mustn't be None")
 
-    radio = get_radio_by_id(session, radio_id)
+    radio = get_radio_by_id(radio_id)
     if radio is None:
         raise InternalError(logger, "radio_update_event(): given radio_id doesn't lead to an entry in db")
 

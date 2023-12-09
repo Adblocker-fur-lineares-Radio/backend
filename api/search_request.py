@@ -1,7 +1,7 @@
 import json
 
 from api.db.database_functions import get_connection, get_radio_by_query, update_search_remaining_updates
-from api.db.db_helpers import GetSession, serialize
+from api.db.db_helpers import NewTransaction, serialize
 from error import get_or_raise, InternalError
 import logging
 from logs.logging_config import configure_logging
@@ -23,14 +23,14 @@ def search_request(client, connection_id, req):
 
     requested_updates = get_or_raise(req, "requested_updates")
 
-    with GetSession() as session:
-        update_search_remaining_updates(session, connection_id, requested_updates)
-        response = search(session, connection_id)
+    with NewTransaction():
+        update_search_remaining_updates(connection_id, requested_updates)
+        response = search(connection_id)
 
     client.send(response)
 
 
-def search(session, connection_id):
+def search(connection_id):
     """
     Searches DB for connection and its preferences
     @param connection_id: the specified connection
@@ -40,13 +40,13 @@ def search(session, connection_id):
     if connection_id is None:
         raise InternalError(logger, "search(): parameter connection_id can't be None")
 
-    connection = get_connection(session, connection_id)
+    connection = get_connection(connection_id)
     if connection is None:
         raise InternalError(logger, "search(): Couldn't find connection in database")
 
-    radios = get_radio_by_query(session)
+    radios = get_radio_by_query()
 
-    remaining_updates = update_search_remaining_updates(session, connection_id)
+    remaining_updates = update_search_remaining_updates(connection_id)
 
     # TODO: add possibility for advanced filters
 
@@ -57,7 +57,7 @@ def search(session, connection_id):
     })
 
 
-def search_update_request(session, client, connection_id, req):
+def search_update_request(client, connection_id, req):
     """
     Client requests to receive updates, gets search(_update) response if instant_update is enabled
     @param client: specified client
@@ -66,14 +66,14 @@ def search_update_request(session, client, connection_id, req):
     @return: -
     """
 
-    connection = get_connection(session, connection_id)
+    connection = get_connection(connection_id)
     if connection is None:
         raise InternalError(logger, "search_update_request(): Couldn't find connection in database")
 
     instant_update = connection.search_remaining_update <= 0
     remaining_updates = get_or_raise(req, 'requested_updates')
 
-    update_search_remaining_updates(session, connection_id, remaining_updates)
+    update_search_remaining_updates(connection_id, remaining_updates)
 
     if instant_update:
-        client.send(search(session, connection_id))
+        client.send(search(connection_id))

@@ -5,6 +5,7 @@ from sqlalchemy import inspect
 from sqlalchemy.orm import sessionmaker
 
 from api.db import create_and_connect_to_db
+import contextvars
 
 # create session with the db
 Session = sessionmaker(bind=create_and_connect_to_db.engine)
@@ -38,27 +39,33 @@ def helper_get_allowed_states(connection):
     return allowed_states
 
 
-"""
-usage:
+current_session = contextvars.ContextVar("current_session", default=None)
 
-with GetSession() as session:
-   ...
 
-"""
-class GetSession:
+class NewTransaction:
+    """
+    usage:
+    with GetSession():
+       ...
+    """
+
     def __init__(self):
         self.session = None
         self.transaction = None
+        self.before = None
 
     def __enter__(self):
         pool_semaphore.acquire()
         self.session = Session()
         self.transaction = self.session.begin()
         self.transaction.__enter__()
+        self.before = current_session.get(None)
+        current_session.set(self)
         return self
 
     def __exit__(self, *args):
         self.transaction.__exit__(*args)
+        current_session.set(self.before)
         pool_semaphore.release()
 
     def first(self, stmt):
@@ -88,7 +95,8 @@ class GetSession:
     def commit(self):
         self.session.commit()
 
-def serializeRow(row):
+
+def serialize_row(row):
     """
     Helper function to prepare db row in json format
     @param row: the row or rows returned from a SQLAlchemy Query
@@ -97,27 +105,27 @@ def serializeRow(row):
     return {c.key: getattr(row, c.key) for c in inspect(row).mapper.column_attrs}
 
 
-def serializeRows(rows):
+def serialize_rows(rows):
     """
     Helper function to prepare multiple db rows in json format
     @param rows: the row or rows returned from a SQLAlchemy Query
     @return: The serialized value and key of multiple rows
     """
-    return [serializeRow(r) for r in rows]
+    return [serialize_row(r) for r in rows]
 
 
-def serialize(rowOrRows):
+def serialize(row_or_rows):
     """
     Serializes the input with serializeRow or serializeRows depending on input
-    @param rowOrRows: the row or rows returned from a SQLAlchemy Query
+    @param row_or_rows: the row or rows returned from a SQLAlchemy Query
     @return: the serialized row
     """
-    if isinstance(rowOrRows, list):
-        return serializeRows(rowOrRows)
-    elif rowOrRows is None:
+    if isinstance(row_or_rows, list):
+        return serialize_rows(row_or_rows)
+    elif row_or_rows is None:
         return None
     else:
-        return serializeRow(rowOrRows)
+        return serialize_row(row_or_rows)
 
 
 def untuple(rows):

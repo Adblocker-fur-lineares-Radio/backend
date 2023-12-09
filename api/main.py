@@ -4,7 +4,7 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
-from api.db.db_helpers import GetSession
+from api.db.db_helpers import NewTransaction
 from notify_client import start_notifier
 from stream_request import stream_request
 
@@ -26,8 +26,8 @@ sock = Sock(app)
 connections = {}
 
 # deletes all residual connections from the db after server reboot
-with GetSession() as session:
-    delete_all_connections_from_db(session)
+with NewTransaction():
+    delete_all_connections_from_db()
 
 
 # default page route specification
@@ -45,8 +45,8 @@ def api(client):
     }
     global connections
 
-    with GetSession() as session:
-        connection_id = insert_new_connection(session)
+    with NewTransaction():
+        connection_id = insert_new_connection()
 
     connections[connection_id] = client
 
@@ -73,15 +73,15 @@ def api(client):
             client.send(msg)
 
         except ConnectionClosed:
-            with GetSession() as session:
-                delete_connection_from_db(session, connection_id)
+            with NewTransaction():
+                delete_connection_from_db(connection_id)
             logger.error(f"Server closed connection to: {client}")
             del connections[connection_id]
             return
 
         except Exception as e:
-            with GetSession() as session:
-                delete_connection_from_db(session, connection_id)
+            with NewTransaction():
+                delete_connection_from_db(connection_id)
             logger.critical(f"########################\n#### Internal Server Error ####")
             del connections[connection_id]
             client.close()
