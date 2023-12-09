@@ -15,8 +15,9 @@ class Error(Exception):
 
 
 class InternalError(Error):
-    def __init__(self):
+    def __init__(self, logger, internal_message):
         super().__init__("internal error")
+        logger.error(internal_message)
 
 
 def check_requested_updates(requested_updates):
@@ -33,7 +34,7 @@ def get_or_raise(kv, key):
     return kv[key]
 
 
-def check_valid_stream_request(req):
+def check_valid_stream_request(session, req):
     preferred_radios = get_or_raise(req, "preferred_radios")
     if preferred_radios is None:
         raise Error("'preferred_radios' can't be null")
@@ -48,7 +49,7 @@ def check_valid_stream_request(req):
         if len(set(preferred_radios)) != len(preferred_radios):
             raise Error("'preferred_radios' mustn't have duplicate ids")
 
-        if not radios_existing(preferred_radios):
+        if not radios_existing(session, preferred_radios):
             raise Error("Atleast one id doesn't exist in the database")
 
     preferred_experience = get_or_raise(req, "preferred_experience")

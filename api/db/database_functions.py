@@ -1,159 +1,26 @@
 from datetime import datetime
 
 from sqlalchemy import *
-from sqlalchemy.orm import *
-from sqlalchemy.orm import sessionmaker
-from api.db import create_and_connect_to_db
+from api.db.db_helpers import STATUS, helper_get_allowed_states
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
-    ConnectionPreferredGenres, RadioGenres, RadioAdTime, RadioMetadata
-
-# create session with the db
-Session = sessionmaker(bind=create_and_connect_to_db.engine)
-session = Session()
-
-STATUS = {
-    "ad": 1,
-    "music": 2,
-    "news": 3,
-    "nothing": 4,
-    "talk": 4  # TODO: maybe add a status for that one
-}
-
-
-def commit():
-    """
-    Commits the currently executed session statements
-    @return: -
-    """
-    session.commit()
-
-
-def rollback():
-    """
-    Rolls the currently executed session statements back
-    @return: -
-    """
-    session.rollback()
-
-
-def close():
-    """
-    Closes the current session
-    @return: -
-    """
-    session.close()
-
-
-def serializeRow(row):
-    """
-    Helper function to prepare db row in json format
-    @param row: the row or rows returned from a SQLAlchemy Query
-    @return: The serialized value and key of a row
-    """
-    return {c.key: getattr(row, c.key) for c in inspect(row).mapper.column_attrs}
-
-
-def serializeRows(rows):
-    """
-    Helper function to prepare multiple db rows in json format
-    @param rows: the row or rows returned from a SQLAlchemy Query
-    @return: The serialized value and key of multiple rows
-    """
-    return [serializeRow(r) for r in rows]
-
-
-def serialize(rowOrRows):
-    """
-    Serializes the input with serializeRow or serializeRows depending on input
-    @param rowOrRows: the row or rows returned from a SQLAlchemy Query
-    @return: the serialized row
-    """
-    if isinstance(rowOrRows, list):
-        return serializeRows(rowOrRows)
-    elif rowOrRows is None:
-        return None
-    else:
-        return serializeRow(rowOrRows)
-
-
-def untuple(rows):
-    """
-    Untuples the passed row
-    @param rows: the row or rows returned from a SQLAlchemy Query
-    @return: returns the first element of the tuple of rows
-    """
-    return [r[0] for r in rows]
-
-
-def first(stmt):
-    """
-    Checks if SQLAlchemy Query result exists, and returns the first result if it does
-    @param stmt: The SQLAlchemy Query
-    @return: the first result of the SQLAlchemy Query, or None
-    """
-    result = session.execute(stmt).first()
-    return None if result is None else result[0]
-
-
-def all(stmt):
-    """
-    Prepares the outcome of an SQLAlchemy  Query by untupling it
-    @param stmt: the SQLAlchemy Query
-    @return: the untupled results as list of rows
-    """
-    result = session.execute(stmt).all()
-    return untuple(result)
-
-
-# usage:
-# with transaction():
-#     code that runs in a transaction
-def transaction():
-    """
-    Begins the PostgreSQL transaction
-    @return: starts the transaction
-    """
-    return session.begin()
+    ConnectionPreferredGenres, RadioAdTime, RadioMetadata
 
 
 # to access list elements, first loop through the rows, then access the db attribute, will return empty list if no
 # query result
-def get_radio_by_id(radio_id):
+def get_radio_by_id(session, radio_id):
     """
     Queries DB for radio by specified id
-    @param radio_id: the radio_id to be filtered by
-    @return: the Query result as a row
+    :param session: the session to use
+    :param radio_id: the radio_id to be filtered by
+    :return: the Query result as a row
     """
 
     stmt = select(Radios).where(Radios.id == radio_id)
-    return first(stmt)
+    return session.first(stmt)
 
 
-def get_radio_by_id_and_genre(radio_ids, genre_ids):
-    """
-    Tries to match a radio from the preferred list to a radio that does not play ads right now,
-    if none exist, try to find a radio that matches with the most preferred genre, if none exists
-    return an empty list
-    @param radio_ids: array with preferred radios
-    @param genre_ids: array with preferred genres
-    @return: the radio that best matches the query
-    """
-    for radio_id in radio_ids:
-        stmt = select(Radios).where(Radios.id == radio_id).where(Radios.status_id != STATUS["ad"])
-        result = all(stmt)
-        if len(result) != 0:
-            return result
-
-    for genre_id in genre_ids:
-        stmt = select(Radios, RadioGenres.genre_id).join(RadioGenres, Radios.id == RadioGenres.radio_id).where(
-            RadioGenres.genre_id == genre_id).where(Radios.status_id != STATUS["ad"]).limit(1)
-        result = all(stmt)
-
-    result = []
-    return result
-
-
-def get_radio_by_connection(connection_id):
+def get_radio_by_connection(session, connection_id):
     """
     Matches the preferred Radios to the specified connection
     @param connection_id: 
@@ -162,20 +29,20 @@ def get_radio_by_connection(connection_id):
     stmt = (select(Radios, Connections)
             .join(ConnectionPreferredRadios, Radios.id == ConnectionPreferredRadios.radio_id)
             .join(Connections, ConnectionPreferredRadios.connection_id == connection_id))
-    return first(stmt)
+    return session.first(stmt)
 
 
-def get_all_radios():
+def get_all_radios(session):
     """
     Queries DB for all radios
     @return: list of rows with radio entries (empty list if none found)
     """
 
     stmt = select(Radios)
-    return all(stmt)
+    return session.all(stmt)
 
 
-def radios_existing(radio_ids):
+def radios_existing(session, radio_ids):
     """
     Checks given list of ids for their existance in the db
     @param radio_ids list of radio ids
@@ -183,11 +50,11 @@ def radios_existing(radio_ids):
     """
 
     stmt = select(func.count()).select_from(Radios).where(Radios.id.in_(radio_ids))
-    count = session.execute(stmt).scalar()
+    count = session.scalar(stmt)
     return count == len(radio_ids)
 
 
-def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
+def get_radio_by_query(session, search_query=None, search_without_ads=None, ids=None):
     """
     Queries DB for radioname from query
     @param search_query: the query string to search a radio by. Leave blank to search all
@@ -207,85 +74,53 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     if ids:
         stmt = stmt.where(Radios.id.in_(ids))
 
-    return all(stmt)
+    return session.all(stmt)
 
 
-def get_connections_by_remaining_updates():
+def get_connections_by_remaining_updates(session):
     """
     Queries DB for a connection with the current radio
     equal to the specified radio_id that has more than 0 remaining updates
     @return: the connections as an untupled list of rows
     """
     stmt = (select(Connections).where(Connections.search_remaining_update > 0))
-    return all(stmt)
+    return session.all(stmt)
 
 
-'''
-def get_connections_by_radio(radio_id):
-    """
-    Queries DB for
-    @param radio_id:
-    @return:
-    """
-    stmt = (select(Connections)
-            .where(Connections.current_radio_id == radio_id)
-            .where(Connections.search_remaining_update > 0))
-    return all(stmt)
-'''
-
-
-def get_preferred_radios(connection_id):
+def get_preferred_radios(session, connection_id):
     """
     Queries DB for preferred Radios from a connection
     :param connection_id: specified connection
     :return: list of all preferred radios
     """
     stmt = select(ConnectionPreferredRadios).where(ConnectionPreferredRadios.connection_id == connection_id)
-    return all(stmt)
+    return session.all(stmt)
 
 
-def get_connections_id_by_radio(radio_id):
+def get_connections_id_by_radio(session, radio_id):
     """
     Queries DB for a connection where the current radio equals the parameter radio_id and the state is allowed
     @param radio_id: the primary key to be searched for
     @return: the connection as a list of rows
     """
     stmt = (select(ConnectionPreferredRadios.connection_id).where(ConnectionPreferredRadios.radio_id == radio_id))
-    return [all(stmt)]
+    return session.all(stmt)
 
 
-def helper_get_allowed_states(connection):
-    """
-    Helper function to limit returned rows to ones with only allowed states
-    @param connection: the connection object mapping the DB table connections
-    @return: a list of allowed states
-    """
-    allowed_states = []
-    if connection.preference_music:
-        allowed_states.append(STATUS["music"])
-    if connection.preference_talk:
-        allowed_states.append(STATUS["talk"])
-    if connection.preference_news:
-        allowed_states.append(STATUS["news"])
-    if connection.preference_ad:
-        allowed_states.append(STATUS["ad"])
-    return allowed_states
-
-
-def switch_to_working_radio(connection_id):
+def switch_to_working_radio(session, connection_id):
     """
     Selects a radio for the connection that fits all filtered requirements
     @param connection_id: the specified connection that should switch the radio
     @return: the radio_id of the new radio, or None
     """
-    connection = get_connection(connection_id)
+    connection = get_connection(session, connection_id)
     allowed_states = helper_get_allowed_states(connection)
 
     stmt = (select(Radios).join(ConnectionPreferredRadios, Radios.id == ConnectionPreferredRadios.radio_id)
             .where(ConnectionPreferredRadios.connection_id == connection_id)
             .where(Radios.status_id.in_(allowed_states)).order_by(ConnectionPreferredRadios.priority.asc()))
 
-    radio = first(stmt)
+    radio = session.first(stmt)
 
     if radio is None:
         # TODO: add genre fallback
@@ -294,9 +129,10 @@ def switch_to_working_radio(connection_id):
     if radio is None:
         # select 'random' radio
         # TODO: give user status about that it doesn't not a preferred radio
+        # TODO: with random
         stmt = (select(Radios)
                 .where(Radios.status_id.in_(allowed_states)))
-        radio = first(stmt)
+        radio = session.first(stmt)
 
     if radio:
         stmt = (update(Connections)
@@ -313,37 +149,37 @@ def switch_to_working_radio(connection_id):
     return None
 
 
-def get_preferred_genres(connection_id):
+def get_preferred_genres(session, connection_id):
     """
     Queries DB for preferred Genres from a connection
     :param connection_id: specified connection
     :return: list of all preferred genres
     """
     stmt = select(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
-    return all(stmt)
+    return session.all(stmt)
 
 
-def get_connection_favorites(connection_id):
+def get_connection_favorites(session, connection_id):
     """
     Queries DB for search favorites from a Connection
     :param connection_id: specified connection
     :return: list of all search favorites
     """
     stmt = select(ConnectionSearchFavorites).where(ConnectionSearchFavorites.connection_id == connection_id)
-    return all(stmt)
+    return session.all(stmt)
 
 
-def get_connection(connection_id):
+def get_connection(session, connection_id):
     """
     Queries DB for specified connection
     :param connection_id: specifies connection
     :return: list of all connection attributes
     """
     stmt = select(Connections).where(Connections.id == connection_id)
-    return first(stmt)
+    return session.first(stmt)
 
 
-def insert_new_connection(search_query=None, current_radio_id=None, search_without_ads=None,
+def insert_new_connection(session, search_query=None, current_radio_id=None, search_without_ads=None,
                           search_remaining_update=0, preference_music=None,
                           preference_talk=None, preference_news=None, preference_ad=None):
     """
@@ -370,11 +206,10 @@ def insert_new_connection(search_query=None, current_radio_id=None, search_witho
         preference_news=preference_news,
         preference_ad=preference_ad
     ).returning(Connections.id))
-    result = session.execute(stmt)
-    return result.scalar()
+    return session.scalar(stmt)
 
 
-def insert_into_connection_preferred_radios(radio_ids, connection_id):
+def insert_into_connection_preferred_radios(session, radio_ids, connection_id):
     """
     Inserts the radio_ids and connection id in the connection_preferred_radios table,
     make sure to delete old values for connection before calling this again with same connection!!!
@@ -383,11 +218,12 @@ def insert_into_connection_preferred_radios(radio_ids, connection_id):
     @return: -
     """
 
+    # TODO turn into one single statement
     for radio_id in radio_ids:
         session.execute(insert(ConnectionPreferredRadios), [{"radio_id": radio_id, "connection_id": connection_id}])
 
 
-def insert_into_connection_search_favorites(radio_ids, connection_id):
+def insert_into_connection_search_favorites(session, radio_ids, connection_id):
     """
     Inserts the radio_ids and connection id in the connection_search_favorites table,
     make sure to delete old values for connection before calling this again with same connection!!!
@@ -395,11 +231,13 @@ def insert_into_connection_search_favorites(radio_ids, connection_id):
     @param connection_id: the corresponding connection id
     @return: -
     """
+
+    # TODO turn into one single statement
     for radio_id in radio_ids:
         session.execute(insert(ConnectionSearchFavorites), [{"radio_id": radio_id, "connection_id": connection_id}])
 
 
-def insert_into_connection_preferred_genres(genre_ids, connection_id):
+def insert_into_connection_preferred_genres(session, genre_ids, connection_id):
     """
     Inserts the genre_ids and connection id in the connection_preferred_genres table,
     make sure to delete old values for connection before calling this again with same connection!!!
@@ -407,11 +245,13 @@ def insert_into_connection_preferred_genres(genre_ids, connection_id):
     @param connection_id: the corresponding connection id
     @return: -
     """
+
+    # TODO turn into one single statement
     for genre_id in genre_ids:
         session.execute(insert(ConnectionPreferredGenres), [{"genre_id": genre_id, "connection_id": connection_id}])
 
 
-def delete_connection_from_db(connection_id):
+def delete_connection_from_db(session, connection_id):
     """
     Removes all entries from "connections", "connection_search_favorites", "connection_preferred_radios",
     "connection_preferred_genres", entries with specified connection_od
@@ -424,7 +264,7 @@ def delete_connection_from_db(connection_id):
     session.execute(stmt)
 
 
-def delete_all_connections_from_db():
+def delete_all_connections_from_db(session):
     """
     Deletes all connections from the DB, used on Serverstart/crash
     @return: -
@@ -432,7 +272,7 @@ def delete_all_connections_from_db():
     session.execute(text("""TRUNCATE TABLE connections CASCADE"""))
 
 
-def update_search_remaining_updates(connection_id, value=None):
+def update_search_remaining_updates(session, connection_id, value=None):
     """
     Updates the DB attribute search_remaining_update
     @param connection_id: the corresponding connection_id
@@ -452,7 +292,7 @@ def update_search_remaining_updates(connection_id, value=None):
     return search_remaining_updates or 0
 
 
-def update_search_request_for_connection(connection_id, search_query=None, without_ads=False, ids=None,
+def update_search_request_for_connection(session, connection_id, search_query=None, without_ads=False, ids=None,
                                          requested_updates=None):
     """
     Updates the DB table connections
@@ -480,7 +320,7 @@ def update_search_request_for_connection(connection_id, search_query=None, witho
         session.execute(stmt)
 
 
-def update_preferences_for_connection(connection_id, preferred_radios=None, preferred_genres=None, preference_ad=None,
+def update_preferences_for_connection(session, connection_id, preferred_radios=None, preferred_genres=None, preference_ad=None,
                                       preference_talk=None, preference_news=None, preference_music=None):
     """
     Updates the DB for user preferences for the specified connection
@@ -510,7 +350,6 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
             stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i, priority=prio)
             session.execute(stmt)
             prio += 1
-        commit()
 
     stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
     session.execute(stmt)
@@ -536,7 +375,7 @@ def xor_(q1, q2):
     )
 
 
-def get_radios_that_need_switch_by_time_and_update(now_min):
+def get_radios_that_need_switch_by_time_and_update(session, now_min):
     """
     Querys the DB for the radios that need to be switched away from
     @return: the list of rows of radios
@@ -559,7 +398,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
     select_not_ads = select_ids.where(not_(ad_check))
-    switch_radios = all(stmt)
+    switch_radios = session.all(stmt)
 
     stmt2 = update(Radios).where(Radios.id.in_(select_ads)).values(status_id=STATUS['ad'])
     stmt3 = update(Radios).where(Radios.id.in_(select_not_ads)).values(status_id=STATUS['music'])
@@ -569,12 +408,12 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     stmt4a = (select(func.min(RadioAdTime.ad_start_time))
               .where(RadioAdTime.ad_start_time > now_min))
 
-    next_start_min = untuple(session.execute(stmt4a))
+    next_start_min = session.all(stmt4a)
 
     stmt4b = (select(func.min(RadioAdTime.ad_end_time))
               .where(RadioAdTime.ad_end_time > now_min))
 
-    next_end_min = untuple(session.execute(stmt4b))
+    next_end_min = session.all(stmt4b)
     if next_end_min[0] is not None and next_start_min[0] is not None:
         next_event = min(next_end_min[0], next_start_min[0])
     elif next_end_min[0] is not None:
@@ -585,12 +424,12 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
         stmt5a = (select(func.min(RadioAdTime.ad_start_time))
                   .where(RadioAdTime.ad_start_time <= now_min))
 
-        next_start_min = untuple(session.execute(stmt5a))
+        next_start_min = session.all(stmt5a)
 
         stmt5b = (select(func.min(RadioAdTime.ad_end_time))
                   .where(RadioAdTime.ad_end_time <= now_min))
 
-        next_end_min = untuple(session.execute(stmt5b))
+        next_end_min = session.all(stmt5b)
         if next_end_min[0] is not None and next_start_min[0] is not None:
             next_event = min(next_end_min[0], next_start_min[0])
 
@@ -604,7 +443,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     return [switch_radios, next_event]
 
 
-def get_radios_and_update_by_currently_playing(data):
+def get_radios_and_update_by_currently_playing(session, data):
     radios = []
     for item in data:
         title, station_id = item['title'], item['stationId']
@@ -620,12 +459,12 @@ def get_radios_and_update_by_currently_playing(data):
                 .where(Radios.currently_playing != currently_playing[1])
                 .where(Radios.current_interpret != currently_playing[0])
                 .where(Radios.station_id == station_id))
-        result = first(stmt)
+        result = session.first(stmt)
 
         if result is not None:
             radios.append(result)
 
-        latest_played_song = first((select(RadioMetadata)
+        latest_played_song = session.first((select(RadioMetadata)
                                    .where(RadioMetadata.station_id == station_id)
                                    .order_by(RadioMetadata.id.desc())))
 

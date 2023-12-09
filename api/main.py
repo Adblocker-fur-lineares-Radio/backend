@@ -4,11 +4,11 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
+from api.db.db_helpers import GetSession
 from notify_client import start_notifier
 from stream_request import stream_request
 
-from db.database_functions import insert_new_connection, commit, rollback, \
-    delete_all_connections_from_db
+from db.database_functions import insert_new_connection, delete_all_connections_from_db
 from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 from error import Error
@@ -26,9 +26,8 @@ sock = Sock(app)
 connections = {}
 
 # deletes all residual connections from the db after server reboot
-
-delete_all_connections_from_db()
-commit()
+with GetSession() as session:
+    delete_all_connections_from_db(session)
 
 
 # default page route specification
@@ -45,9 +44,10 @@ def api(client):
         'stream_request': stream_request,
     }
     global connections
-    connection_id = insert_new_connection()
 
-    commit()
+    with GetSession() as session:
+        connection_id = insert_new_connection(session)
+
     connections[connection_id] = client
 
     while True:
@@ -55,37 +55,34 @@ def api(client):
             raw = client.receive()
             data = json.loads(raw)
             logger.info(f"got request '{data['type']}': {raw}")
-            mapping[data['type']](client, connection_id, data)
-            commit()
+
+            callee = mapping[data['type']]
+            callee(client, connection_id, data)
 
         except JSONDecodeError:
             msg = Error('Request body is not json').to_response()
             logger.info(f"Server sent: {msg}")
             client.send(msg)
-            rollback()
 
         except Error as e:
             client.send(e.to_response())
-            rollback()
 
         except KeyError as e:
             msg = Error(f"Request body has incorrect json structure, couldn't find key '{e}'").to_response()
             logger.error(f"Server sent: {msg}")
             client.send(msg)
-            rollback()
 
         except ConnectionClosed:
-            delete_connection_from_db(connection_id)
-            commit()
+            with GetSession() as session:
+                delete_connection_from_db(session, connection_id)
             logger.error(f"Server closed connection to: {client}")
             del connections[connection_id]
             return
 
         except Exception as e:
-            delete_connection_from_db(connection_id)
-            commit()
+            with GetSession() as session:
+                delete_connection_from_db(session, connection_id)
             logger.critical(f"########################\n#### Internal Server Error ####")
-            rollback()
             del connections[connection_id]
             client.close()
             raise e
@@ -95,5 +92,3 @@ notifier = start_notifier(connections)
 app.run(host="0.0.0.0")
 
 notifier.join()
-
-# close()
