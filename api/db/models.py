@@ -129,6 +129,6 @@ class RadioMetadata(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     station_id: Mapped[str] = mapped_column(Text)
-    title: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(Text, nullable=True)
     interpret: Mapped[str] = mapped_column(Text)
     timestamp: Mapped[datetime] = mapped_column(TIMESTAMP)

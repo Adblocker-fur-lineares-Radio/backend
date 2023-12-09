@@ -18,7 +18,7 @@ def notify_client_search_update(session, connections):
     """
     cons = get_connections_by_remaining_updates(session)
     for connection in cons:
-        connections[connection].send(search(session, connection))
+        connections[connection.id].send(search(session, connection))
 
 
 def notify_client_stream_guidance(session, connections, radio_id):
@@ -44,12 +44,12 @@ def analyse_radio_stream(connections):
         while True:
             now = int(time.strftime('%M', time.localtime()))
             [streams, switch_time] = get_radios_that_need_switch_by_time_and_update(session, now)
-    
+
             for stream in streams:
                 notify_client_stream_guidance(session, connections, stream.id)
                 notify_client_search_update(session, connections)
                 session.commit()
-    
+
             if switch_time > now:
                 sleep_time = switch_time - now
             else:
@@ -99,6 +99,7 @@ def start_notifier(connections):
     @param connections:
     @return: the thread
     """
+
     analysis = Thread(target=analyse_radio_stream, args=(connections,))
     metadata = Thread(target=metadata_processing, args=(connections,))
     analysis.start()

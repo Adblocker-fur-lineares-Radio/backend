@@ -453,7 +453,7 @@ def get_radios_and_update_by_currently_playing(session, data):
             currently_playing = title.split(' - ')
 
         if len(currently_playing) == 1:
-            currently_playing.append(None)
+            currently_playing.append('')
 
         stmt = (select(Radios)
                 .where(Radios.currently_playing != currently_playing[1])
