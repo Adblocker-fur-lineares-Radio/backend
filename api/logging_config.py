@@ -11,7 +11,7 @@ def configure_logging():
     os.makedirs(logs_directory, exist_ok=True)
 
 
-    log_file_path = os.path.join(logs_directory, 'backend.log')
+    log_file_path = os.path.join(logs_directory, '../logs/backend.log')
     logging.basicConfig(format='%(levelname)s %(asctime)s %(name)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
                         filename=log_file_path,

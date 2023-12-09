@@ -6,7 +6,7 @@ from api.db.db_helpers import NewTransaction, serialize
 from error import check_valid_stream_request, InternalError, Error
 import logging
 
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 configure_logging()
 
 logger = logging.getLogger("stream_request.py")

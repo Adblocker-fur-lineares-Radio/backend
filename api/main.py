@@ -13,7 +13,7 @@ from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 from error import Error
 import logging
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 
 configure_logging()
 logger = logging.getLogger("main.py")

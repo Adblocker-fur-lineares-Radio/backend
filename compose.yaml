@@ -1,0 +1,59 @@
+services:
+  server:
+    build: .
+#    restart: always
+    depends_on:
+      core-db:
+        condition: service_healthy
+      fingerprint-db:
+        condition: service_healthy
+    ports:
+      - 0.0.0.0:80:5000
+#    volumes:
+#      - ./logs:/logs
+    environment:
+      FINGERPRINT_MYSQL_HOST: fingerprint-db
+      FINGERPRINT_MYSQL_USER: root
+      FINGERPRINT_MYSQL_PASSWORD: root
+      FINGERPRINT_MYSQL_DB: fingerprint
+      CORE_POSTGRES_HOST: core-db
+      CORE_POSTGRES_USER: postgres
+      CORE_POSTGRES_PASSWORD: postgres
+      CORE_POSTGRES_DB: adblock_radio
+      POOL_SIZE: 5
+      MAX_CONNECTIONS: 50
+
+  core-db:
+    image: postgres:14.10
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "adblock_radio" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: adblock_radio
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+#      - core-db-data:/var/lib/postgresql/data
+
+  fingerprint-db:
+    image: mysql:8.2
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 5s
+      interval: 30s
+      retries: 10
+      start_period: 5s
+#    volumes:
+#      - fingerprint-db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fingerprint
+
+#volumes:
+#  fingerprint-db-data:
+#  core-db-data:

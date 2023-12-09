@@ -4,7 +4,7 @@ from api.db.database_functions import get_connection, get_radio_by_query, update
 from api.db.db_helpers import NewTransaction, serialize
 from error import get_or_raise, InternalError
 import logging
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 configure_logging()
 
 logger = logging.getLogger("search_request.py")

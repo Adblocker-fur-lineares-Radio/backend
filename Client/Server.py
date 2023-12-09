@@ -2,7 +2,7 @@ import asyncio
 import websockets
 import json
 import logging
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 
 configure_logging()
 
