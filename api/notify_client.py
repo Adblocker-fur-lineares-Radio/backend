@@ -17,7 +17,7 @@ def notify_client_search_update(connections):
     """
     cons = get_connections_by_remaining_updates()
     for connection in cons:
-        connections[connection].send(search(connection))
+        connections[connection.id].send(search(connection.id))
 
 
 def notify_client_stream_guidance(connections, radio_id):
@@ -82,6 +82,7 @@ def metadata_processing(connections):
     :return: -
     """
     while True:
+        print(get_connections_by_remaining_updates())
         radios = get_all_radios()
         streams = update_metadata(radios)
         for stream in streams:
@@ -96,6 +97,7 @@ def start_notifier(connections):
     @param connections:
     @return: the thread
     """
+
     analysation = Thread(target=analyse_radio_stream, args=(connections,))
     metadata = Thread(target=metadata_processing, args=(connections,))
     analysation.start()
