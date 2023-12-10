@@ -29,7 +29,7 @@ def notify_client_stream_guidance(connections, radio_id):
     @return: -
     """
     cons = get_connections_id_by_radio(radio_id)
-    for connection in cons[0]:
+    for connection in cons:
         connections[connection].send(radio_stream_event(connection))
 
 
@@ -40,21 +40,21 @@ def analyse_radio_stream(connections):
     @param connections: the connections
     @return: -
     """
-    with NewTransaction():
-        while True:
+
+    while True:
+        with NewTransaction():
             now = int(time.strftime('%M', time.localtime()))
             [streams, switch_time] = get_radios_that_need_switch_by_time_and_update(now)
 
             for stream in streams:
                 notify_client_stream_guidance(connections, stream.id)
                 notify_client_search_update(connections)
-                session.commit()
 
-            if switch_time > now:
-                sleep_time = switch_time - now
-            else:
-                sleep_time = 60 - now + switch_time
-            time.sleep(sleep_time * 60 - int(time.strftime('%S', time.localtime())) + 1)
+        if switch_time > now:
+            sleep_time = switch_time - now
+        else:
+            sleep_time = 60 - now + switch_time
+        time.sleep(sleep_time * 60 - int(time.strftime('%S', time.localtime())) + 1)
 
 
 def update_metadata(radios):
@@ -76,21 +76,20 @@ def update_metadata(radios):
     return need_update
 
 
-def metadata_processing( connections):
+def metadata_processing(connections):
     """
     Endless loop which updates the currently playing songs and sends them to the connections
     :param connections: the current connections
     :return: -
     """
-    with NewTransaction():
-        while True:
+    while True:
+        with NewTransaction():
             radios = get_all_radios()
             streams = update_metadata(radios)
             for stream in streams:
                 notify_client_stream_guidance(connections, stream.id)
                 notify_client_search_update(connections)
-                session.commit()
-            time.sleep(15)
+        time.sleep(15)
 
 
 def start_notifier(connections):

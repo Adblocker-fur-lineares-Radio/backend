@@ -5,13 +5,13 @@ from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
 from api.db.db_helpers import NewTransaction
+from api.error_handling.error_classes import Error
 from notify_client import start_notifier
 from stream_request import stream_request
 
 from db.database_functions import insert_new_connection, delete_all_connections_from_db
 from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
-from error import Error
 import logging
 from logs.logging_config import configure_logging
 

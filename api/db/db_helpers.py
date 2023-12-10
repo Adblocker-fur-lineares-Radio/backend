@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 
@@ -6,6 +7,10 @@ from sqlalchemy.orm import sessionmaker
 
 from api.db import create_and_connect_to_db
 import contextvars
+
+from api.error_handling.error_classes import InternalError
+
+logger = logging.getLogger("db_helpers.py")
 
 # create session with the db
 Session = sessionmaker(bind=create_and_connect_to_db.engine)
@@ -40,6 +45,14 @@ def helper_get_allowed_states(connection):
 
 
 current_session = contextvars.ContextVar("current_session", default=None)
+
+
+# def commit():
+#     session = current_session.get()
+#     if session is None:
+#         raise InternalError(logger, "Can't commit, because you aren't in a session/transaction")
+#     session.commit()
+
 
 
 class NewTransaction:
@@ -92,8 +105,9 @@ class NewTransaction:
     def execute(self, stmt):
         return self.session.execute(stmt)
 
-    def commit(self):
-        self.session.commit()
+    # def commit(self):
+    #     self.session.commit()
+    #     self.transaction = self.session.begin()
 
 
 def serialize_row(row):
