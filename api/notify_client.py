@@ -18,7 +18,7 @@ def notify_client_search_update(connections):
     """
     cons = get_connections_by_remaining_updates()
     for connection in cons:
-        connections[connection.id].send(search(connection))
+        connections[connection.id].send(search(connection.id))
 
 
 def notify_client_stream_guidance(connections, radio_id):
@@ -86,9 +86,11 @@ def metadata_processing(connections):
         with NewTransaction():
             radios = get_all_radios()
             streams = update_metadata(radios)
-            for stream in streams:
-                notify_client_stream_guidance(connections, stream.id)
+            if len(streams) > 0:
                 notify_client_search_update(connections)
+            # for stream in streams:
+            #     notify_client_stream_guidance(connections, stream.id)
+            #     notify_client_search_update(connections)
         time.sleep(15)
 
 
