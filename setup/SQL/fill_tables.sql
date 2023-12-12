@@ -52,10 +52,10 @@ VALUES(4, 'Antenne AC', 2, NULL, NULL,'https://antenneac--di--nacs-ais-lgc--06--
 
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url, station_id)
-VALUES(5, 'bigFM', 2, NULL, NULL,'https://stream.bigfm.de/saarland/aac-128' ,'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png', 'bigfm');
+VALUES(5, 'bigFM', 2, NULL, NULL,'https://streams.bigfm.de/bigfm-sb-128-mp3' ,'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png', 'bigfm');
 
 INSERT INTO radios(id, name, status_id, currently_playing, current_interpret, stream_url, logo_url, station_id)
-VALUES(6, 'BAYERN 1', 2, NULL, NULL,'https://tunein.com/radio/BAYERN-1-Oberfranken-Mittelfranken-907-s14979/' ,'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png', 'bayern1main');
+VALUES(6, 'BAYERN 1', 2, NULL, NULL,'https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZQzsaDx31ycwBA2nMB7MlYV2YA&token=IFb6h2TZYxGoc5GpDbpQdN00rBQlA4udJfaxFvqbxdI&tvf=WEFQioAboBdkMTIxLnJuZGZuay5jb20' ,'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png', 'bayern1main');
 
 -- Fill "radio_genres" table
 
