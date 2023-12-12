@@ -5,15 +5,21 @@ from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
 from api.db.db_helpers import NewTransaction
+from db.database_functions import insert_init
+
 from notify_client import start_notifier
+
 from stream_request import stream_request
 
 from db.database_functions import insert_new_connection, delete_all_connections_from_db
-from db.database_functions import delete_connection_from_db, insert_init
+from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 from error import Error
 import logging
 from api.logging_config import configure_logging
+
+with NewTransaction():
+    insert_init()
 
 configure_logging()
 logger = logging.getLogger("main.py")
@@ -24,9 +30,6 @@ app = Flask(__name__)
 sock = Sock(app)
 
 connections = {}
-
-with NewTransaction():
-    insert_init()
 
 # deletes all residual connections from the db after server reboot
 with NewTransaction():

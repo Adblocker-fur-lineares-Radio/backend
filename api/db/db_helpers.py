@@ -89,7 +89,9 @@ class NewTransaction:
     def scalar(self, stmt):
         return self.execute(stmt).scalar()
 
-    def execute(self, stmt):
+    def execute(self, stmt, bulk_data=None):
+        if bulk_data:
+            stmt = stmt.values(bulk_data)
         return self.session.execute(stmt)
 
     def commit(self):
@@ -135,3 +137,6 @@ def untuple(rows):
     @return: returns the first element of the tuple of rows
     """
     return [r[0] for r in rows]
+
+
+
