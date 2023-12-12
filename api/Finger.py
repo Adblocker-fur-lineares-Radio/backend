@@ -9,7 +9,7 @@ from datetime import datetime
 from pydub.exceptions import CouldntDecodeError
 
 
-def test(Url, Offset, Dauer , FingerThreshold):
+def test(Url, Offset, Dauer, FingerThreshold):
     config = {
         "database": {
             "host": "localhost",
@@ -19,7 +19,7 @@ def test(Url, Offset, Dauer , FingerThreshold):
         },
     }
     djv = Dejavu(config)
-    #djv.fingerprint_directory(r"..\OrginalAudio", [".wav"])
+    # djv.fingerprint_directory(r"..\OrginalAudio", [".wav"])
 
     offset = Offset
     dauer = Dauer
@@ -27,7 +27,7 @@ def test(Url, Offset, Dauer , FingerThreshold):
 
     fname1 = "1_" + str(time.perf_counter())[2:] + ".wav"
     f1 = open(fname1, 'wb')
-    fname2= "2_" + str(time.perf_counter())[2:] + ".wav"
+    fname2 = "2_" + str(time.perf_counter())[2:] + ".wav"
     f2 = open(fname2, 'wb')
     fname3 = "3_" + str(time.perf_counter())[2:] + ".wav"
     f3 = open(fname3, 'wb')
@@ -66,7 +66,7 @@ def test(Url, Offset, Dauer , FingerThreshold):
     i = 4
     while True:
         start = time.time()
-        #try:
+        # try:
         while time.time() - start <= dauer - offset:
             audio = response.read(1024)
             f2.write(audio)
@@ -86,7 +86,8 @@ def test(Url, Offset, Dauer , FingerThreshold):
         except CouldntDecodeError as e:
             print("Error " + str(e))
 
-
+        os.remove(fname2)
+        fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
         f2 = open(fname2, 'wb')
         sys.stdout.flush()
         i += 1
@@ -110,46 +111,33 @@ def test(Url, Offset, Dauer , FingerThreshold):
         except CouldntDecodeError as e:
             print("Error " + str(e))
 
+        os.remove(fname3)
+        fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
         f3 = open(fname3, 'wb')
         sys.stdout.flush()
         i += 1
 
 
-def p():
-    config = {
-        "database": {
-            "host": "localhost",
-            "user": "test123",
-            "password": "test123",
-            "database": "finger"
-        },
-    }
-    djv = Dejavu(config)
-    try:
-        if os.stat("3_92.7495056.wav").st_size > 0:
-            finger = djv.recognize(FileRecognizer, "3_92.7495056.wav")
-            if finger and finger["confidence"] > 0:
-                print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
-    except CouldntDecodeError as e:
-        print("Error " + str(e))
+def StartFinger():
+    radios = ["https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
+              "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
+              "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20",
+              "https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref",
+              "https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high",
+              "https://stream.bigfm.de/saarland/aac-128"]
 
+    radios = ["https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
+              "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
+              "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20"]
+
+    threads = []
+    for radio in radios:
+        threads.append(threading.Thread(target=test, args=(radio, 2, 8, 15)))
+        threads[-1].start()
+
+    for t in threads:
+        t.join()
 
 
 if __name__ == '__main__':
-    #test("https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de", 2, 10, 10)
-    #p()
-    x = threading.Thread(target=test, args=("https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de", 2, 10, 10))
-    x.start()
-
-    y = threading.Thread(target=test, args=("https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20", 2, 10, 10))
-    y.start()
-
-    z = threading.Thread(target=test, args=("https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20", 2, 10, 10))
-    z.start()
-
-    z.join()
-    y.join()
-    x.join()
-
-
-
+    StartFinger()
