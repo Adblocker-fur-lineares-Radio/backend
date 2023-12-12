@@ -9,7 +9,7 @@ from notify_client import start_notifier
 from stream_request import stream_request
 
 from db.database_functions import insert_new_connection, delete_all_connections_from_db
-from db.database_functions import delete_connection_from_db
+from db.database_functions import delete_connection_from_db, insert_init
 from search_request import search_request, search_update_request
 from error import Error
 import logging
@@ -24,6 +24,9 @@ app = Flask(__name__)
 sock = Sock(app)
 
 connections = {}
+
+with NewTransaction():
+    insert_init()
 
 # deletes all residual connections from the db after server reboot
 with NewTransaction():

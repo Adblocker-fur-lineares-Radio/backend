@@ -1,9 +1,10 @@
 from datetime import datetime
 
+import sqlalchemy.sql
 from sqlalchemy import *
 from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
-    ConnectionPreferredGenres, RadioAdTime, RadioMetadata
+    RadioAdTime, RadioMetadata, RadioStates
 
 
 # to access list elements, first loop through the rows, then access the db attribute, will return empty list if no
@@ -15,7 +16,7 @@ def get_radio_by_id(radio_id):
     :param radio_id: the radio_id to be filtered by
     :return: the Query result as a row
     """
-    
+
     session = current_session.get()
     stmt = select(Radios).where(Radios.id == radio_id)
     return session.first(stmt)
@@ -68,7 +69,7 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     """
 
     session = current_session.get()
-    
+
     stmt = select(Radios)
 
     if search_query:
@@ -89,7 +90,7 @@ def get_connections_by_remaining_updates():
     equal to the specified radio_id that has more than 0 remaining updates
     @return: the connections as an untupled list of rows
     """
-    
+
     session = current_session.get()
     stmt = (select(Connections).where(Connections.search_remaining_update > 0))
     return session.all(stmt)
@@ -127,7 +128,7 @@ def switch_to_working_radio(connection_id):
     """
 
     session = current_session.get()
-    
+
     connection = get_connection(connection_id)
     allowed_states = helper_get_allowed_states(connection)
 
@@ -164,26 +165,13 @@ def switch_to_working_radio(connection_id):
     return None
 
 
-def get_preferred_genres(connection_id):
-    """
-    Queries DB for preferred Genres from a connection
-    :param connection_id: specified connection
-    :return: list of all preferred genres
-    """
-
-    session = current_session.get()
-    
-    stmt = select(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
-    return session.all(stmt)
-
-
 def get_connection_favorites(connection_id):
     """
     Queries DB for search favorites from a Connection
     :param connection_id: specified connection
     :return: list of all search favorites
     """
-    
+
     session = current_session.get()
     stmt = select(ConnectionSearchFavorites).where(ConnectionSearchFavorites.connection_id == connection_id)
     return session.all(stmt)
@@ -195,7 +183,7 @@ def get_connection(connection_id):
     :param connection_id: specifies connection
     :return: list of all connection attributes
     """
-    
+
     session = current_session.get()
     stmt = select(Connections).where(Connections.id == connection_id)
     return session.first(stmt)
@@ -219,7 +207,7 @@ def insert_new_connection(search_query=None, current_radio_id=None, search_witho
     """
 
     session = current_session.get()
-    
+
     stmt = (insert(Connections).values(
         search_query=search_query,
         current_radio_id=current_radio_id,
@@ -243,7 +231,7 @@ def insert_into_connection_preferred_radios(radio_ids, connection_id):
     """
 
     session = current_session.get()
-    
+
     # TODO turn into one single statement
     for radio_id in radio_ids:
         session.execute(insert(ConnectionPreferredRadios), [{"radio_id": radio_id, "connection_id": connection_id}])
@@ -263,22 +251,6 @@ def insert_into_connection_search_favorites(radio_ids, connection_id):
     # TODO turn into one single statement
     for radio_id in radio_ids:
         session.execute(insert(ConnectionSearchFavorites), [{"radio_id": radio_id, "connection_id": connection_id}])
-
-
-def insert_into_connection_preferred_genres(genre_ids, connection_id):
-    """
-    Inserts the genre_ids and connection id in the connection_preferred_genres table,
-    make sure to delete old values for connection before calling this again with same connection!!!
-    @param genre_ids: array with preferred genres
-    @param connection_id: the corresponding connection id
-    @return: -
-    """
-
-    session = current_session.get()
-
-    # TODO turn into one single statement
-    for genre_id in genre_ids:
-        session.execute(insert(ConnectionPreferredGenres), [{"genre_id": genre_id, "connection_id": connection_id}])
 
 
 def delete_connection_from_db(connection_id):
@@ -315,7 +287,7 @@ def update_search_remaining_updates(connection_id, value=None):
     """
 
     session = current_session.get()
-    
+
     stmt = update(Connections).where(Connections.id == connection_id)
     if value:
         stmt = stmt.values(search_remaining_update=value).returning(Connections.search_remaining_update)
@@ -342,7 +314,7 @@ def update_search_request_for_connection(connection_id, search_query=None, witho
     """
 
     session = current_session.get()
-    
+
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
             .values(search_query=search_query,
@@ -375,7 +347,7 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     """
 
     session = current_session.get()
-    
+
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
             .values(preference_talk=preference_talk,
@@ -393,16 +365,6 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
             stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i, priority=prio)
             session.execute(stmt)
             prio += 1
-
-    stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
-    session.execute(stmt)
-
-    if isinstance(preferred_genres, list) and len(preferred_genres) > 0:
-        stmt = insert(ConnectionPreferredGenres)
-        session.execute(stmt, [
-            {"connection_id": connection_id, "genre_id": i}
-            for i in preferred_genres
-        ])
 
 
 def xor_(q1, q2):
@@ -425,7 +387,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     #"""
 
     session = current_session.get()
-    
+
     now = func.current_timestamp()
     # if inDerZeitVonWerbung xor status == 'werbung'
 
@@ -491,7 +453,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
 
 def get_radios_and_update_by_currently_playing(data):
     session = current_session.get()
-    
+
     radios = []
     for item in data:
         title, station_id = item['title'], item['stationId']
@@ -513,8 +475,8 @@ def get_radios_and_update_by_currently_playing(data):
             radios.append(result)
 
         latest_played_song = session.first((select(RadioMetadata)
-                                   .where(RadioMetadata.station_id == station_id)
-                                   .order_by(RadioMetadata.id.desc())))
+                                            .where(RadioMetadata.station_id == station_id)
+                                            .order_by(RadioMetadata.id.desc())))
 
         if (latest_played_song is None or
                 latest_played_song.title != currently_playing[1] and
@@ -531,3 +493,235 @@ def get_radios_and_update_by_currently_playing(data):
         session.execute(stmt3)
 
     return radios
+
+
+def insert_init():
+    session = current_session.get()
+    radiostatesstmt = (insert(RadioStates).values(id=1, label='Werbung'))
+    session.execute(radiostatesstmt)
+    radiostatesstmt = (insert(RadioStates).values(id=2, label='Musik'))
+    session.execute(radiostatesstmt)
+    radiostatesstmt = (insert(RadioStates).values(id=3, label='Nachrichten'))
+    session.execute(radiostatesstmt)
+    radiostatesstmt = (insert(RadioStates).values(id=4, label=None))
+    session.execute(radiostatesstmt)
+
+    radiostmt = (insert(Radios).values
+                 (id=1,
+                  name='1Live',
+                  status_id=2,
+                  currently_playing=None,
+                  current_interpret=None,
+                  stream_url='https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
+                  logo_url='https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png',
+                  station_id='1live')
+                 )
+    session.execute(radiostmt)
+    radiostmt = (insert(Radios).values
+                 (id=2,
+                  name='WDR 2',
+                  status_id=2,
+                  currently_playing=None,
+                  current_interpret=None,
+                  stream_url='https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20',
+                  logo_url='https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png',
+                  station_id='wdr2')
+                 )
+    session.execute(radiostmt)
+    radiostmt = (insert(Radios).values
+                 (id=3,
+                  name='100,5',
+                  status_id=2,
+                  currently_playing=None,
+                  current_interpret=None,
+                  stream_url='https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref',
+                  logo_url='https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png',
+                  station_id='dashitradio')
+                 )
+    session.execute(radiostmt)
+    radiostmt = (insert(Radios).values
+                 (id=4,
+                  name='Antenne AC',
+                  status_id=2,
+                  currently_playing=None,
+                  current_interpret=None,
+                  stream_url='https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high',
+                  logo_url='https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png',
+                  station_id='antenneac')
+                 )
+    session.execute(radiostmt)
+    radiostmt = (insert(Radios).values
+                 (id=5,
+                  name='bigFM',
+                  status_id=2,
+                  currently_playing=None,
+                  current_interpret=None,
+                  stream_url='https://streams.bigfm.de/bigfm-sb-128-mp3',
+                  logo_url='https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png',
+                  station_id='bigfm')
+                 )
+    session.execute(radiostmt)
+    radiostmt = (insert(Radios).values
+                 (id=6,
+                  name='BAYERN 1',
+                  status_id=2,
+                  currently_playing=None,
+                  current_interpret=None,
+                  stream_url='https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20',
+                  logo_url='https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png',
+                  station_id='bayern1main')
+                 )
+    session.execute(radiostmt)
+
+    radioadtimestmt = (
+        insert(RadioAdTime).values(radio_id=1, ad_start_time=53, ad_end_time=3, ad_transmission_start=6,
+                                   ad_transmission_end=20))
+    session.execute(radioadtimestmt)
+    radioadtimestmt = (
+        insert(RadioAdTime).values(radio_id=2, ad_start_time=27, ad_end_time=33, ad_transmission_start=6,
+                                   ad_transmission_end=20))
+    session.execute(radioadtimestmt)
+    radioadtimestmt = (
+        insert(RadioAdTime).values(radio_id=2, ad_start_time=53, ad_end_time=3, ad_transmission_start=6,
+                                   ad_transmission_end=20))
+    session.execute(radioadtimestmt)
+    radioadtimestmt = (
+        insert(RadioAdTime).values(radio_id=6, ad_start_time=27, ad_end_time=33, ad_transmission_start=6,
+                                   ad_transmission_end=20))
+    session.execute(radioadtimestmt)
+    radioadtimestmt = (
+        insert(RadioAdTime).values(radio_id=6, ad_start_time=53, ad_end_time=3, ad_transmission_start=6,
+                                   ad_transmission_end=20))
+    session.execute(radioadtimestmt)
+
+    # aus irgendeinem grund klappen bulk inserts nicht wie in der doku
+    # https://docs.sqlalchemy.org/en/20/orm/queryguide/dml.html#orm-queryguide-bulk-insert
+
+
+'''
+    radiostatesstmt = (insert(RadioStates),
+                   [
+                       {"id": 1, "label": 'Werbung'},
+                       {"id": 2, "label": 'Musik'},
+                       {"id": 3, "label": 'Nachrichten'},
+                       {"id": 4, "label": None},
+                   ],
+                   )
+    session.execute(radiostatesstmt)
+
+    # not actively used in current implementation
+    genresstmt = (insert(Genres),
+              [
+                  {"id": 1, "name": 'Pop'},
+                  {"id": 2, "name": '90er'},
+                  {"id": 3, "name": 'Charts'},
+                  {"id": 4, "name": 'Hip Hop'},
+                  {"id": 5, "name": 'Oldies'},
+                  {"id": 6, "name": '80er'},
+              ],
+              )
+    session.execute(genresstmt)
+
+    radiosstmt = (insert(Radios),
+              [
+                  {
+                      "id": 1,
+                      "name": '1Live',
+                      "status_id": 2,
+                      "currently_playing": None,
+                      "current_interpret": None,
+                      "stream_url": 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
+                      "logo_url": 'https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png',
+                      "station_id": '1live'
+                  },
+                  {
+                      "id": 2,
+                      "name": 'WDR 2',
+                      "status_id": 2,
+                      "currently_playing": None,
+                      "current_interpret": None,
+                      "stream_url": 'https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20',
+                      "logo_url": 'https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png',
+                      "station_id": 'wdr2'
+                  },
+                  {
+                      "id": 3,
+                      "name": '100,5',
+                      "status_id": 2,
+                      "currently_playing": None,
+                      "current_interpret": None,
+                      "stream_url": 'https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref',
+                      "logo_url": 'https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png',
+                      "station_id": 'dashitradio'
+                  },
+                  {
+                      "id": 4,
+                      "name": 'Antenne AC',
+                      "status_id": 2,
+                      "currently_playing": None,
+                      "current_interpret": None,
+                      "stream_url": 'https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high',
+                      "logo_url": 'https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png',
+                      "station_id": 'antenneac'
+                  },
+                  {
+                      "id": 5,
+                      "name": 'bigFM',
+                      "status_id": 2,
+                      "currently_playing": None,
+                      "current_interpret": None,
+                      "stream_url": 'https://streams.bigfm.de/bigfm-sb-128-mp3',
+                      "logo_url": 'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png',
+                      "station_id": 'bigfm'
+                  },
+                  {
+                      "id": 6,
+                      "name": 'BAYERN 1',
+                      "status_id": 2,
+                      "currently_playing": None,
+                      "current_interpret": None,
+                      "stream_url": 'https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20',
+                      "logo_url": 'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png',
+                      "station_id": 'bayern1main'
+                  },
+
+              ],
+              )
+    session.execute(radiosstmt)
+
+    # not actively used in current implementation
+    radiogenresstmt = (insert(RadioGenres),
+                   [
+                       {"radio_id": 1, "genre_id": 1},
+                       {"radio_id": 2, "genre_id": 1},
+                       {"radio_id": 2, "genre_id": 2},
+                       {"radio_id": 3, "genre_id": 1},
+                       {"radio_id": 3, "genre_id": 6},
+                       {"radio_id": 3, "genre_id": 2},
+                       {"radio_id": 4, "genre_id": 1},
+                       {"radio_id": 5, "genre_id": 1},
+                       {"radio_id": 5, "genre_id": 3},
+                       {"radio_id": 5, "genre_id": 4},
+                       {"radio_id": 6, "genre_id": 1},
+                       {"radio_id": 6, "genre_id": 5},
+                   ],
+                   )
+    session.execute(radiogenresstmt)
+
+    radioadtimestmt = (insert(RadioAdTime),
+                   [
+                       {"radio_id": 1, "ad_start_time": 53, "ad_end_time": 3, "ad_transmission_start": 6,
+                        "ad_transmission_end": 20},
+                       {"radio_id": 2, "ad_start_time": 27, "ad_end_time": 33, "ad_transmission_start": 6,
+                        "ad_transmission_end": 20},
+                       {"radio_id": 2, "ad_start_time": 53, "ad_end_time": 3, "ad_transmission_start": 6,
+                        "ad_transmission_end": 20},
+                       {"radio_id": 6, "ad_start_time": 27, "ad_end_time": 33, "ad_transmission_start": 6,
+                        "ad_transmission_end": 20},
+                       {"radio_id": 6, "ad_start_time": 53, "ad_end_time": 3, "ad_transmission_start": 6,
+                        "ad_transmission_end": 20},
+
+                   ],
+                   )
+    session.execute(radioadtimestmt)
+'''
