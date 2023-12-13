@@ -15,7 +15,7 @@ def get_radio_by_id(radio_id):
     :param radio_id: the radio_id to be filtered by
     :return: the Query result as a row
     """
-    
+
     session = current_session.get()
     stmt = select(Radios).where(Radios.id == radio_id)
     return session.first(stmt)
@@ -68,7 +68,7 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     """
 
     session = current_session.get()
-    
+
     stmt = select(Radios)
 
     if search_query:
@@ -89,7 +89,7 @@ def get_connections_by_remaining_updates():
     equal to the specified radio_id that has more than 0 remaining updates
     @return: the connections as an untupled list of rows
     """
-    
+
     session = current_session.get()
     stmt = (select(Connections).where(Connections.search_remaining_update > 0))
     return session.all(stmt)
@@ -127,7 +127,7 @@ def switch_to_working_radio(connection_id):
     """
 
     session = current_session.get()
-    
+
     connection = get_connection(connection_id)
     allowed_states = helper_get_allowed_states(connection)
 
@@ -172,7 +172,7 @@ def get_preferred_genres(connection_id):
     """
 
     session = current_session.get()
-    
+
     stmt = select(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
     return session.all(stmt)
 
@@ -183,7 +183,7 @@ def get_connection_favorites(connection_id):
     :param connection_id: specified connection
     :return: list of all search favorites
     """
-    
+
     session = current_session.get()
     stmt = select(ConnectionSearchFavorites).where(ConnectionSearchFavorites.connection_id == connection_id)
     return session.all(stmt)
@@ -195,7 +195,7 @@ def get_connection(connection_id):
     :param connection_id: specifies connection
     :return: list of all connection attributes
     """
-    
+
     session = current_session.get()
     stmt = select(Connections).where(Connections.id == connection_id)
     return session.first(stmt)
@@ -219,7 +219,7 @@ def insert_new_connection(search_query=None, current_radio_id=None, search_witho
     """
 
     session = current_session.get()
-    
+
     stmt = (insert(Connections).values(
         search_query=search_query,
         current_radio_id=current_radio_id,
@@ -243,7 +243,7 @@ def insert_into_connection_preferred_radios(radio_ids, connection_id):
     """
 
     session = current_session.get()
-    
+
     # TODO turn into one single statement
     for radio_id in radio_ids:
         session.execute(insert(ConnectionPreferredRadios), [{"radio_id": radio_id, "connection_id": connection_id}])
@@ -315,7 +315,7 @@ def update_search_remaining_updates(connection_id, value=None):
     """
 
     session = current_session.get()
-    
+
     stmt = update(Connections).where(Connections.id == connection_id)
     if value:
         stmt = stmt.values(search_remaining_update=value).returning(Connections.search_remaining_update)
@@ -342,7 +342,7 @@ def update_search_request_for_connection(connection_id, search_query=None, witho
     """
 
     session = current_session.get()
-    
+
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
             .values(search_query=search_query,
@@ -375,7 +375,7 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     """
 
     session = current_session.get()
-    
+
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
             .values(preference_talk=preference_talk,
@@ -425,12 +425,12 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     #"""
 
     session = current_session.get()
-    
+
     now = func.current_timestamp()
     # if inDerZeitVonWerbung xor status == 'werbung'
 
     hour_check = func.date_part('hour', now).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
-    minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time - 1)
+    minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time-1)
 
     ad_check = and_(hour_check, minute_check)
     current_status_is_ad = Radios.status_id == STATUS['ad']
@@ -440,16 +440,16 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
         ad_check,
         current_status_is_ad)
     ))
-
+    switch_radios = session.all(stmt)
+    print(switch_radios)
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
     select_not_ads = select_ids.where(not_(ad_check))
-    switch_radios = session.all(stmt)
 
-    stmt2 = update(Radios).where(Radios.id.in_(select_ads)).values(status_id=STATUS['ad'])
-    stmt3 = update(Radios).where(Radios.id.in_(select_not_ads)).values(status_id=STATUS['music'])
-    session.execute(stmt2)
+    stmt2 = (update(Radios).where(Radios.id.in_(select_ads)).values(status_id=STATUS['ad']))
+    stmt3 = (update(Radios).where(Radios.id.in_(select_not_ads)).values(status_id=STATUS['music']))
     session.execute(stmt3)
+    session.execute(stmt2)
 
     stmt4a = (select(func.min(RadioAdTime.ad_start_time))
               .where(RadioAdTime.ad_start_time > now_min))
@@ -491,7 +491,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
 
 def get_radios_and_update_by_currently_playing(data):
     session = current_session.get()
-    
+
     radios = []
     for item in data:
         title, station_id = item['title'], item['stationId']
@@ -513,8 +513,8 @@ def get_radios_and_update_by_currently_playing(data):
             radios.append(result)
 
         latest_played_song = session.first((select(RadioMetadata)
-                                   .where(RadioMetadata.station_id == station_id)
-                                   .order_by(RadioMetadata.id.desc())))
+                                            .where(RadioMetadata.station_id == station_id)
+                                            .order_by(RadioMetadata.id.desc())))
 
         if (latest_played_song is None or
                 latest_played_song.title != currently_playing[1] and
