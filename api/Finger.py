@@ -51,6 +51,9 @@ def test(Url, Offset, Dauer, FingerThreshold):
             finger = djv.recognize(FileRecognizer, fname1)
             if finger and finger["confidence"] > fingerThreshold:
                 print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
+                info = finger["confidence"].split("_")
+                sender = info[0]
+                Typ = info[1]
     except Exception as e:
         print("Error " + str(e))
 
@@ -71,6 +74,9 @@ def test(Url, Offset, Dauer, FingerThreshold):
                 finger2 = djv.recognize(FileRecognizer, fname2)
                 if finger2 and finger2["confidence"] > fingerThreshold:
                     print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
+                    info = finger2["confidence"].split("_")
+                    sender = info[0]
+                    Typ = info[1]
         except Exception as e:
             print("Error " + str(e))
 
@@ -92,6 +98,9 @@ def test(Url, Offset, Dauer, FingerThreshold):
                 finger3 = djv.recognize(FileRecognizer, fname3)
                 if finger3 and finger3["confidence"] > fingerThreshold:
                     print(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
+                    info = finger3["confidence"].split("_")
+                    sender = info[0]
+                    Typ = info[1]
         except Exception as e:
             print("Error " + str(e))
 
