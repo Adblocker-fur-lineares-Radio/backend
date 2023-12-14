@@ -1,7 +1,7 @@
 services:
   server:
     build: .
-#    restart: always
+    restart: always
     depends_on:
       core-db:
         condition: service_healthy
@@ -9,8 +9,7 @@ services:
         condition: service_healthy
     ports:
       - 0.0.0.0:80:5000
-#    volumes:
-#      - ./logs:/logs
+
     environment:
       FINGERPRINT_MYSQL_HOST: fingerprint-db
       FINGERPRINT_MYSQL_USER: root
@@ -37,8 +36,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: adblock_radio
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
-#      - core-db-data:/var/lib/postgresql/data
+      - core-db-data:/var/lib/postgresql/data
 
   fingerprint-db:
     image: mysql:8.2
@@ -48,12 +46,12 @@ services:
       interval: 30s
       retries: 10
       start_period: 5s
-#    volumes:
-#      - fingerprint-db-data:/var/lib/mysql
+    volumes:
+      - fingerprint-db-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: fingerprint
 
-#volumes:
-#  fingerprint-db-data:
-#  core-db-data:
+volumes:
+  fingerprint-db-data:
+  core-db-data:
