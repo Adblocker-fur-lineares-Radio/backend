@@ -21,6 +21,9 @@ INSERT INTO radio_ad_time
 VALUES (1, 20, 23, 6, 20);
 INSERT INTO radio_ad_time
 (radio_id, ad_start_time, ad_end_time, ad_transmission_start, ad_transmission_end)
+VALUES (1, 27, 33, 6, 20);
+INSERT INTO radio_ad_time
+(radio_id, ad_start_time, ad_end_time, ad_transmission_start, ad_transmission_end)
 VALUES (6, 27, 33, 6, 20);
 INSERT INTO radio_ad_time
 (radio_id, ad_start_time, ad_end_time, ad_transmission_start, ad_transmission_end)
