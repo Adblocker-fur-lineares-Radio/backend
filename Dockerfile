@@ -29,6 +29,7 @@ RUN pip install -r requirements.txt
 
 #COPY api api
 COPY OriginalAudio OriginalAudio
+COPY database database
 
 EXPOSE 5000
 

@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from sqlalchemy import *
@@ -501,197 +502,20 @@ def insert_init():
     if cnt > 0:
         return
 
-    '''
-    radiostatesstmt = (insert(RadioStates).values(id=1, label='Werbung'))
-    session.execute(radiostatesstmt)
-    radiostatesstmt = (insert(RadioStates).values(id=2, label='Musik'))
-    session.execute(radiostatesstmt)
-    radiostatesstmt = (insert(RadioStates).values(id=3, label='Nachrichten'))
-    session.execute(radiostatesstmt)
-    radiostatesstmt = (insert(RadioStates).values(id=4, label=None))
-    session.execute(radiostatesstmt)
+    with open("/app/database/states.json") as f:
+        session.execute(
+            insert(RadioStates),
+            json.load(f)
+        )
 
-    radiostmt = (insert(Radios).values
-                 (id=1,
-                  name='1Live',
-                  status_id=2,
-                  currently_playing=None,
-                  current_interpret=None,
-                  stream_url='https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
-                  logo_url='https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png',
-                  station_id='1live')
-                 )
-    session.execute(radiostmt)
-    radiostmt = (insert(Radios).values
-                 (id=2,
-                  name='WDR 2',
-                  status_id=2,
-                  currently_playing=None,
-                  current_interpret=None,
-                  stream_url='https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20',
-                  logo_url='https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png',
-                  station_id='wdr2')
-                 )
-    session.execute(radiostmt)
-    radiostmt = (insert(Radios).values
-                 (id=3,
-                  name='100,5',
-                  status_id=2,
-                  currently_playing=None,
-                  current_interpret=None,
-                  stream_url='https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref',
-                  logo_url='https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png',
-                  station_id='dashitradio')
-                 )
-    session.execute(radiostmt)
-    radiostmt = (insert(Radios).values
-                 (id=4,
-                  name='Antenne AC',
-                  status_id=2,
-                  currently_playing=None,
-                  current_interpret=None,
-                  stream_url='https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high',
-                  logo_url='https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png',
-                  station_id='antenneac')
-                 )
-    session.execute(radiostmt)
-    radiostmt = (insert(Radios).values
-                 (id=5,
-                  name='bigFM',
-                  status_id=2,
-                  currently_playing=None,
-                  current_interpret=None,
-                  stream_url='https://streams.bigfm.de/bigfm-sb-128-mp3',
-                  logo_url='https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png',
-                  station_id='bigfm')
-                 )
-    session.execute(radiostmt)
-    radiostmt = (insert(Radios).values
-                 (id=6,
-                  name='BAYERN 1',
-                  status_id=2,
-                  currently_playing=None,
-                  current_interpret=None,
-                  stream_url='https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20',
-                  logo_url='https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png',
-                  station_id='bayern1main')
-                 )
-    session.execute(radiostmt)
+    with open("/app/database/radios.json") as f:
+        session.execute(
+            insert(Radios),
+            json.load(f)
+        )
 
-    radioadtimestmt = (
-        insert(RadioAdTime).values(radio_id=1, ad_start_time=53, ad_end_time=3, ad_transmission_start=6,
-                                   ad_transmission_end=20))
-    session.execute(radioadtimestmt)
-    radioadtimestmt = (
-        insert(RadioAdTime).values(radio_id=2, ad_start_time=27, ad_end_time=33, ad_transmission_start=6,
-                                   ad_transmission_end=20))
-    session.execute(radioadtimestmt)
-    radioadtimestmt = (
-        insert(RadioAdTime).values(radio_id=2, ad_start_time=53, ad_end_time=3, ad_transmission_start=6,
-                                   ad_transmission_end=20))
-    session.execute(radioadtimestmt)
-    radioadtimestmt = (
-        insert(RadioAdTime).values(radio_id=6, ad_start_time=27, ad_end_time=33, ad_transmission_start=6,
-                                   ad_transmission_end=20))
-    session.execute(radioadtimestmt)
-    radioadtimestmt = (
-        insert(RadioAdTime).values(radio_id=6, ad_start_time=53, ad_end_time=3, ad_transmission_start=6,
-                                   ad_transmission_end=20))
-    session.execute(radioadtimestmt)
-    '''
-    # aus irgendeinem grund klappen bulk inserts nicht wie in der doku
-    # https://docs.sqlalchemy.org/en/20/orm/queryguide/dml.html#orm-queryguide-bulk-insert
-
-    session.execute(
-        insert(RadioStates),
-        [
-            {"id": 1, "label": 'Werbung'},
-            {"id": 2, "label": 'Musik'},
-            {"id": 3, "label": 'Nachrichten'},
-            {"id": 4, "label": None},
-        ],
-    )
-
-    session.execute(
-        insert(Radios),
-        [
-            {
-                "id": 1,
-                "name": '1Live',
-                "status_id": 2,
-                "currently_playing": None,
-                "current_interpret": None,
-                "stream_url": 'https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de',
-                "logo_url": 'https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png',
-                "station_id": '1live'
-            },
-            {
-                "id": 2,
-                "name": 'WDR 2',
-                "status_id": 2,
-                "currently_playing": None,
-                "current_interpret": None,
-                "stream_url": 'https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20',
-                "logo_url": 'https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png',
-                "station_id": 'wdr2'
-            },
-            {
-                "id": 3,
-                "name": '100,5',
-                "status_id": 2,
-                "currently_playing": None,
-                "current_interpret": None,
-                "stream_url": 'https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref',
-                "logo_url": 'https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png',
-                "station_id": 'dashitradio'
-            },
-            {
-                "id": 4,
-                "name": 'Antenne AC',
-                "status_id": 2,
-                "currently_playing": None,
-                "current_interpret": None,
-                "stream_url": 'https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high',
-                "logo_url": 'https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png',
-                "station_id": 'antenneac'
-            },
-            {
-                "id": 5,
-                "name": 'bigFM',
-                "status_id": 2,
-                "currently_playing": None,
-                "current_interpret": None,
-                "stream_url": 'https://streams.bigfm.de/bigfm-sb-128-mp3',
-                "logo_url": 'https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png',
-                "station_id": 'bigfm'
-            },
-            {
-                "id": 6,
-                "name": 'BAYERN 1',
-                "status_id": 2,
-                "currently_playing": None,
-                "current_interpret": None,
-                "stream_url": 'https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20',
-                "logo_url": 'https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png',
-                "station_id": 'bayern1main'
-            },
-
-        ],
-    )
-
-    session.execute(
-        insert(RadioAdTime),
-        [
-            {"radio_id": 1, "ad_start_time": 53, "ad_end_time": 3, "ad_transmission_start": 6,
-             "ad_transmission_end": 20},
-            {"radio_id": 2, "ad_start_time": 27, "ad_end_time": 33, "ad_transmission_start": 6,
-             "ad_transmission_end": 20},
-            {"radio_id": 2, "ad_start_time": 53, "ad_end_time": 3, "ad_transmission_start": 6,
-             "ad_transmission_end": 20},
-            {"radio_id": 6, "ad_start_time": 27, "ad_end_time": 33, "ad_transmission_start": 6,
-             "ad_transmission_end": 20},
-            {"radio_id": 6, "ad_start_time": 53, "ad_end_time": 3, "ad_transmission_start": 6,
-             "ad_transmission_end": 20},
-
-        ],
-    )
+    with open("/app/database/radio_ad_times.json") as f:
+        session.execute(
+            insert(RadioAdTime),
+            json.load(f)
+        )
