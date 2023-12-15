@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "name": "1Live",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
+        "logo_url": "https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png",
+        "station_id": "1live"
+    },
+    {
+        "id": 2,
+        "name": "WDR 2",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
+        "logo_url": "https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png",
+        "station_id": "wdr2"
+    },
+    {
+        "id": 3,
+        "name": "100,5",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref",
+        "logo_url": "https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png",
+        "station_id": "dashitradio"
+    },
+    {
+        "id": 4,
+        "name": "Antenne AC",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high",
+        "logo_url": "https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png",
+        "station_id": "antenneac"
+    },
+    {
+        "id": 5,
+        "name": "bigFM",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://streams.bigfm.de/bigfm-sb-128-mp3",
+        "logo_url": "https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png",
+        "station_id": "bigfm"
+    },
+    {
+        "id": 6,
+        "name": "BAYERN 1",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20",
+        "logo_url": "https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png",
+        "station_id": "bayern1main"
+    }
+]

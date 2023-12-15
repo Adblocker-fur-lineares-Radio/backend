@@ -8,8 +8,6 @@ from sqlalchemy.orm import sessionmaker
 from api.db import create_and_connect_to_db
 import contextvars
 
-from api.error_handling.error_classes import InternalError
-
 logger = logging.getLogger("db_helpers.py")
 
 # create session with the db
@@ -102,7 +100,9 @@ class NewTransaction:
     def scalar(self, stmt):
         return self.execute(stmt).scalar()
 
-    def execute(self, stmt):
+    def execute(self, stmt, bulk_data=None):
+        if bulk_data:
+            stmt = stmt.values(bulk_data)
         return self.session.execute(stmt)
 
     # def commit(self):
@@ -149,3 +149,6 @@ def untuple(rows):
     @return: returns the first element of the tuple of rows
     """
     return [r[0] for r in rows]
+
+
+

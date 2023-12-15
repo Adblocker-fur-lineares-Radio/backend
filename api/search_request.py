@@ -6,7 +6,7 @@ import logging
 
 from api.error_handling.error_checkers import get_or_raise
 from api.error_handling.error_classes import InternalError
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 configure_logging()
 
 logger = logging.getLogger("search_request.py")

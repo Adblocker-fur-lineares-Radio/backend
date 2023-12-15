@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from sqlalchemy import Integer, ForeignKey, Text, Boolean, TIMESTAMP
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import MetaData
 from typing import Optional
 
@@ -28,20 +28,13 @@ class Radios(Base):
     logo_url: Mapped[str] = mapped_column(Text)
     station_id: Mapped[str] = mapped_column(Text)
 
+
 @dataclass
 class RadioStates(Base):
     __tablename__ = 'radio_states'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     label: Mapped[Optional[str]] = mapped_column(Text)
-
-
-@dataclass
-class RadioGenres(Base):
-    __tablename__ = 'radio_genres'
-
-    radio_id: Mapped[int] = mapped_column(ForeignKey("radios.id"), primary_key=True)
-    genre_id: Mapped[int] = mapped_column(ForeignKey("genres.id"), primary_key=True)
 
 
 @dataclass
@@ -57,21 +50,12 @@ class RadioAdTime(Base):
 
 
 @dataclass
-class Genres(Base):
-    __tablename__ = 'genres'
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[Optional[str]] = mapped_column(Text)
-
-
-@dataclass
 class ConnectionSearchFavorites(Base):
     __tablename__ = 'connection_search_favorites'
 
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
 
-    # parent = relationship("Connections", back_populates="childSearchFav")
 
 @dataclass
 class Connections(Base):
@@ -87,20 +71,6 @@ class Connections(Base):
     preference_news: Mapped[Optional[bool]] = mapped_column(Boolean)
     preference_ad: Mapped[Optional[bool]] = mapped_column(Boolean)
 
-    # favorites = relationship(Radios, secondary='connection_search_favorites', backref='favorite_for_connections')
-    # preferred_radios = relationship(Radios, secondary='connection_preferred_radios', backref='preferred_by_connections')
-    # preferred_genres = relationship(Genres, secondary='connection_preferred_genres', backref='preferred_by_connections')
-    # current_radio = relationship(Radios, backref='connections_currently_playing')
-
-    # Die 3 Zeilen werfen Warnings, weil es wegen den reltionships hierdrueber, mehrere relationships ueber den
-    # gleichen Secondary Key gibt
-    # childPrefRadios = relationship("ConnectionPreferredRadios", back_populates="parent", cascade="all, delete",
-    #                                 )
-    # childPrefGenres = relationship("ConnectionPreferredGenres", back_populates="parent", cascade="all, delete",
-    #                                )
-    # childSearchFav = relationship("ConnectionSearchFavorites", back_populates="parent", cascade="all, delete",
-    #                               )
-
 
 @dataclass
 class ConnectionPreferredRadios(Base):
@@ -109,18 +79,6 @@ class ConnectionPreferredRadios(Base):
     radio_id: Mapped[int] = mapped_column(ForeignKey('radios.id'), primary_key=True)
     connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
     priority: Mapped[int] = mapped_column(Integer)
-
-    # parent = relationship("Connections", back_populates="childPrefRadios")
-
-
-@dataclass
-class ConnectionPreferredGenres(Base):
-    __tablename__ = 'connection_preferred_genres'
-
-    genre_id: Mapped[int] = mapped_column(ForeignKey('genres.id'), primary_key=True)
-    connection_id: Mapped[int] = mapped_column(ForeignKey('connections.id', ondelete="CASCADE"), primary_key=True)
-
-    # parent = relationship("Connections", back_populates="childPrefGenres")
 
 
 @dataclass

@@ -1,9 +1,10 @@
+import json
 from datetime import datetime
 
 from sqlalchemy import *
 from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
-    ConnectionPreferredGenres, RadioAdTime, RadioMetadata
+    RadioAdTime, RadioMetadata, RadioStates
 
 
 # to access list elements, first loop through the rows, then access the db attribute, will return empty list if no
@@ -164,19 +165,6 @@ def switch_to_working_radio(connection_id):
     return None
 
 
-def get_preferred_genres(connection_id):
-    """
-    Queries DB for preferred Genres from a connection
-    :param connection_id: specified connection
-    :return: list of all preferred genres
-    """
-
-    session = current_session.get()
-
-    stmt = select(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
-    return session.all(stmt)
-
-
 def get_connection_favorites(connection_id):
     """
     Queries DB for search favorites from a Connection
@@ -265,22 +253,6 @@ def insert_into_connection_search_favorites(radio_ids, connection_id):
         session.execute(insert(ConnectionSearchFavorites), [{"radio_id": radio_id, "connection_id": connection_id}])
 
 
-def insert_into_connection_preferred_genres(genre_ids, connection_id):
-    """
-    Inserts the genre_ids and connection id in the connection_preferred_genres table,
-    make sure to delete old values for connection before calling this again with same connection!!!
-    @param genre_ids: array with preferred genres
-    @param connection_id: the corresponding connection id
-    @return: -
-    """
-
-    session = current_session.get()
-
-    # TODO turn into one single statement
-    for genre_id in genre_ids:
-        session.execute(insert(ConnectionPreferredGenres), [{"genre_id": genre_id, "connection_id": connection_id}])
-
-
 def delete_connection_from_db(connection_id):
     """
     Removes all entries from "connections", "connection_search_favorites", "connection_preferred_radios",
@@ -360,7 +332,7 @@ def update_search_request_for_connection(connection_id, search_query=None, witho
         session.execute(stmt)
 
 
-def update_preferences_for_connection(connection_id, preferred_radios=None, preferred_genres=None, preference_ad=None,
+def update_preferences_for_connection(connection_id, preferred_radios=None, preference_ad=None,
                                       preference_talk=None, preference_news=None, preference_music=None):
     """
     Updates the DB for user preferences for the specified connection
@@ -393,16 +365,6 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
             stmt = insert(ConnectionPreferredRadios).values(connection_id=connection_id, radio_id=i, priority=prio)
             session.execute(stmt)
             prio += 1
-
-    stmt = delete(ConnectionPreferredGenres).where(ConnectionPreferredGenres.connection_id == connection_id)
-    session.execute(stmt)
-
-    if isinstance(preferred_genres, list) and len(preferred_genres) > 0:
-        stmt = insert(ConnectionPreferredGenres)
-        session.execute(stmt, [
-            {"connection_id": connection_id, "genre_id": i}
-            for i in preferred_genres
-        ])
 
 
 def xor_(q1, q2):
@@ -441,7 +403,6 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
         current_status_is_ad)
     ))
     switch_radios = session.all(stmt)
-    print(switch_radios)
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
     select_not_ads = select_ids.where(not_(ad_check))
@@ -531,3 +492,30 @@ def get_radios_and_update_by_currently_playing(data):
         session.execute(stmt3)
 
     return radios
+
+
+def insert_init():
+    session = current_session.get()
+
+    stmt = select(func.count()).select_from(RadioStates)
+    cnt = session.scalar(stmt)
+    if cnt > 0:
+        return
+
+    with open("/app/database/states.json") as f:
+        session.execute(
+            insert(RadioStates),
+            json.load(f)
+        )
+
+    with open("/app/database/radios.json") as f:
+        session.execute(
+            insert(Radios),
+            json.load(f)
+        )
+
+    with open("/app/database/radio_ad_times.json") as f:
+        session.execute(
+            insert(RadioAdTime),
+            json.load(f)
+        )

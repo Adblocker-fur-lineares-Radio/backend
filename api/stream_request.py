@@ -7,7 +7,7 @@ import logging
 
 from api.error_handling.error_checkers import check_valid_stream_request
 from api.error_handling.error_classes import InternalError, Error
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 configure_logging()
 
 logger = logging.getLogger("stream_request.py")
