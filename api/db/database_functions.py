@@ -1,11 +1,13 @@
 import json
+import logging
 from datetime import datetime
 
 from sqlalchemy import *
-from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session
+from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session, serialize_row
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     RadioAdTime, RadioMetadata, RadioStates
 
+logger = logging.getLogger("database_functions.py")
 
 # to access list elements, first loop through the rows, then access the db attribute, will return empty list if no
 # query result
@@ -18,8 +20,9 @@ def get_radio_by_id(radio_id):
     """
 
     session = current_session.get()
-    stmt = select(Radios).where(Radios.id == radio_id)
-    return session.first(stmt)
+    stmt = (stmt_select_radio_with_state()
+            .where(Radios.id == radio_id))
+    return transform_radio_with_state(session.first(stmt))
 
 
 def get_radio_by_connection(connection_id):
@@ -59,6 +62,19 @@ def radios_existing(radio_ids):
     return count == len(radio_ids)
 
 
+def stmt_select_radio_with_state():
+    return select(Radios, RadioStates).join(RadioStates, RadioStates.id == Radios.status_id)
+
+
+def transform_radio_with_state(result):
+    logger.info(f"logging: {result}")
+    if isinstance(result, list):
+        return [transform_radio_with_state(entry) for entry in result]
+    res = serialize_row(result[0])
+    res['status_label'] = result[1].label
+    return res
+
+
 def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     """
     Queries DB for radioname from query
@@ -70,7 +86,7 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
 
     session = current_session.get()
 
-    stmt = select(Radios)
+    stmt = stmt_select_radio_with_state()
 
     if search_query:
         stmt = stmt.where(Radios.name.like("%" + search_query + "%"))
@@ -81,7 +97,7 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     if ids:
         stmt = stmt.where(Radios.id.in_(ids))
 
-    return session.all(stmt)
+    return transform_radio_with_state(session.all(stmt))
 
 
 def get_connections_by_remaining_updates():
@@ -232,9 +248,8 @@ def insert_into_connection_preferred_radios(radio_ids, connection_id):
 
     session = current_session.get()
 
-    # TODO turn into one single statement
-    for radio_id in radio_ids:
-        session.execute(insert(ConnectionPreferredRadios), [{"radio_id": radio_id, "connection_id": connection_id}])
+    session.execute(insert(ConnectionPreferredRadios),
+                    [{"radio_id": radio_id, "connection_id": connection_id} for radio_id in radio_ids])
 
 
 def insert_into_connection_search_favorites(radio_ids, connection_id):
@@ -249,8 +264,8 @@ def insert_into_connection_search_favorites(radio_ids, connection_id):
     session = current_session.get()
 
     # TODO turn into one single statement
-    for radio_id in radio_ids:
-        session.execute(insert(ConnectionSearchFavorites), [{"radio_id": radio_id, "connection_id": connection_id}])
+    session.execute(insert(ConnectionSearchFavorites),
+                    [{"radio_id": radio_id, "connection_id": connection_id} for radio_id in radio_ids])
 
 
 def delete_connection_from_db(connection_id):
@@ -391,18 +406,22 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     now = func.current_timestamp()
     # if inDerZeitVonWerbung xor status == 'werbung'
 
+    # get radios that switched
     hour_check = func.date_part('hour', now).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
     minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time-1)
 
     ad_check = and_(hour_check, minute_check)
     current_status_is_ad = Radios.status_id == STATUS['ad']
 
-    stmt = (select(Radios).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
-    .where(xor_(
-        ad_check,
-        current_status_is_ad)
-    ))
+    stmt = (select(Radios)
+        .join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
+        .where(xor_(
+            ad_check,
+            current_status_is_ad)
+        ))
     switch_radios = session.all(stmt)
+
+    # get next switch time
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
     select_not_ads = select_ids.where(not_(ad_check))

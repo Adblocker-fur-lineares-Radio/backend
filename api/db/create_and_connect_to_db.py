@@ -16,8 +16,6 @@ MAX_CONNECTIONS = int(os.getenv('MAX_CONNECTIONS'))
 
 CONNECTION_STRING = f"postgresql+psycopg://{CORE_POSTGRES_USER}:{CORE_POSTGRES_PASSWORD}@{CORE_POSTGRES_HOST}:5432/{CORE_POSTGRES_DB}"
 
-
-
 # connect to the db
 # engine = create_engine(MY_ENV_VAR, echo=True)
 engine = create_engine(CONNECTION_STRING, echo=False, pool_size=POOL_SIZE, max_overflow=MAX_CONNECTIONS - POOL_SIZE)

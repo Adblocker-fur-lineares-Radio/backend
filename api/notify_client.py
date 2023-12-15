@@ -46,7 +46,7 @@ def analyse_radio_stream(connections):
             now = int(time.strftime('%M', time.localtime()))
             [streams, switch_time] = get_radios_that_need_switch_by_time_and_update(now)
 
-            for stream in list({radio.id: radio for radio in streams}.values()):
+            for stream, state in list({radio.id: radio for radio in streams}.values()):
                 notify_client_stream_guidance(connections, stream.id)
                 notify_client_search_update(connections)
 
