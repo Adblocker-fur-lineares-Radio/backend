@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import sqlalchemy.sql
 from sqlalchemy import *
 from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
@@ -332,7 +331,7 @@ def update_search_request_for_connection(connection_id, search_query=None, witho
         session.execute(stmt)
 
 
-def update_preferences_for_connection(connection_id, preferred_radios=None, preferred_genres=None, preference_ad=None,
+def update_preferences_for_connection(connection_id, preferred_radios=None, preference_ad=None,
                                       preference_talk=None, preference_news=None, preference_music=None):
     """
     Updates the DB for user preferences for the specified connection

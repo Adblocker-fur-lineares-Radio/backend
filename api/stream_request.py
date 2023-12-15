@@ -5,10 +5,9 @@ from api.db.database_functions import switch_to_working_radio, get_radio_by_id, 
 from api.db.db_helpers import NewTransaction, serialize
 import logging
 
-from api.logging_config import configure_logging
 from api.error_handling.error_checkers import check_valid_stream_request
 from api.error_handling.error_classes import InternalError, Error
-from logs.logging_config import configure_logging
+from api.logging_config import configure_logging
 configure_logging()
 
 logger = logging.getLogger("stream_request.py")

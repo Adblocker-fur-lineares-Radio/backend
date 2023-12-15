@@ -8,8 +8,6 @@ from sqlalchemy.orm import sessionmaker
 from api.db import create_and_connect_to_db
 import contextvars
 
-from api.error_handling.error_classes import InternalError
-
 logger = logging.getLogger("db_helpers.py")
 
 # create session with the db

@@ -3,3 +3,4 @@ v1.zip
 .idea/
 api/__pycache__/
 api/db/__pycache__/
+backend.log

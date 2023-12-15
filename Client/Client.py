@@ -5,8 +5,8 @@ import asyncio
 import websockets
 # from api.db.database_functions import delete_connection_from_db
 
-address = "ws://185.233.107.253:5000/api"
-# address = "ws://127.0.0.1:5000/api"
+# address = "ws://185.233.107.253:5000/api"
+address = "ws://127.0.0.1/api"
 
 
 def search_request(requested_updates=1):
