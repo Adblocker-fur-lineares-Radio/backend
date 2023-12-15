@@ -1,9 +1,12 @@
-import time
 import vlc
 import json
 import asyncio
 import websockets
-# from api.db.database_functions import delete_connection_from_db
+from dejavu.recognize import FileRecognizer
+from dejavu import Dejavu
+import time
+import sys
+from urllib.request import urlopen
 
 # address = "ws://185.233.107.253:5000/api"
 address = "ws://127.0.0.1/api"
@@ -12,7 +15,7 @@ address = "ws://127.0.0.1/api"
 def search_request(requested_updates=1):
     """
     Look up ServerAPI Documentation (Google Drive)
-    @param query: Contains Search-text
+    @param query: Contains Search-textS
     @param filter_ids: Contains preferred Radios
     @param filter_without_ads: bool, if you want ads or not
     @param requested_updates: Number of follow-up updates expected
@@ -120,6 +123,6 @@ async def StartClient():
             except websockets.exceptions.ConnectionClosedOK:
                 pass
 
-
 if __name__ == '__main__':
     asyncio.run(StartClient())
+
