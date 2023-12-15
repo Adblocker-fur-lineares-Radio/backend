@@ -30,6 +30,7 @@ def helper_get_allowed_states(connection):
     @param connection: the connection object mapping the DB table connections
     @return: a list of allowed states
     """
+
     allowed_states = []
     if connection.preference_music:
         allowed_states.append(STATUS["music"])
@@ -45,18 +46,10 @@ def helper_get_allowed_states(connection):
 current_session = contextvars.ContextVar("current_session", default=None)
 
 
-# def commit():
-#     session = current_session.get()
-#     if session is None:
-#         raise InternalError(logger, "Can't commit, because you aren't in a session/transaction")
-#     session.commit()
-
-
-
 class NewTransaction:
     """
     usage:
-    with GetSession():
+    with NewTransaction():
        ...
     """
 
@@ -81,21 +74,27 @@ class NewTransaction:
 
     def first(self, stmt):
         """
-            Checks if SQLAlchemy Query result exists, and returns the first result if it does
-            @param stmt: The SQLAlchemy Query
-            @return: the first result of the SQLAlchemy Query, or None
-            """
+        Checks if SQLAlchemy Query result exists, and returns the first result if it does
+        @param stmt: The SQLAlchemy Query
+        @return: the first result of the SQLAlchemy Query, or None
+        """
+
         result = self.session.execute(stmt).first()
-        return None if result is None else result[0]
+        return None if result is None else (result if len(result) > 1 else result[0])
 
     def all(self, stmt):
         """
-            Prepares the outcome of an SQLAlchemy  Query by untupling it
-            @param stmt: the SQLAlchemy Query
-            @return: the untupled results as list of rows
-            """
+        Prepares the outcome of an SQLAlchemy Query by untupling it
+        @param stmt: the SQLAlchemy Query
+        @return: the result as list of rows (if with one-tuples, the tuples will be unpacked)
+        """
+
         result = self.session.execute(stmt).all()
-        return untuple(result)
+        if len(result) == 0:
+            return []
+        if len(result[0]) > 1:
+            return result
+        return [entry[0] for entry in result]
 
     def scalar(self, stmt):
         return self.execute(stmt).scalar()
@@ -105,10 +104,6 @@ class NewTransaction:
             stmt = stmt.values(bulk_data)
         return self.session.execute(stmt)
 
-    # def commit(self):
-    #     self.session.commit()
-    #     self.transaction = self.session.begin()
-
 
 def serialize_row(row):
     """
@@ -116,6 +111,8 @@ def serialize_row(row):
     @param row: the row or rows returned from a SQLAlchemy Query
     @return: The serialized value and key of a row
     """
+    if isinstance(row, dict):
+        return row
     return {c.key: getattr(row, c.key) for c in inspect(row).mapper.column_attrs}
 
 
@@ -141,14 +138,6 @@ def serialize(row_or_rows):
     else:
         return serialize_row(row_or_rows)
 
-
-def untuple(rows):
-    """
-    Untuples the passed row
-    @param rows: the row or rows returned from a SQLAlchemy Query
-    @return: returns the first element of the tuple of rows
-    """
-    return [r[0] for r in rows]
 
 
 
