@@ -2,11 +2,7 @@ import vlc
 import json
 import asyncio
 import websockets
-from dejavu.recognize import FileRecognizer
-from dejavu import Dejavu
 import time
-import sys
-from urllib.request import urlopen
 
 # address = "ws://185.233.107.253:5000/api"
 address = "ws://127.0.0.1/api"

@@ -1,13 +1,7 @@
-git+https://github.com/grayarrow/dejavu.git
-mysql-connector-python
-numpy
-pydub
-wavio
-matplotlib
-scipy
 SQLAlchemy
 psycopg[binary]
 python-dotenv
 flask
 flask_sock
 requests
+git+https://github.com/yunpengn/dejavu.git

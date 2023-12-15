@@ -6,18 +6,26 @@ import os
 import threading
 from datetime import datetime
 
+from dotenv import load_dotenv
+
+load_dotenv()
+FINGERPRINT_MYSQL_HOST = os.getenv('FINGERPRINT_MYSQL_HOST')
+FINGERPRINT_MYSQL_USER = os.getenv('FINGERPRINT_MYSQL_USER')
+FINGERPRINT_MYSQL_PASSWORD = os.getenv('FINGERPRINT_MYSQL_PASSWORD')
+FINGERPRINT_MYSQL_DB = os.getenv('FINGERPRINT_MYSQL_DB')
+
+config = {
+    "database": {
+        "host": FINGERPRINT_MYSQL_HOST,
+        "user": FINGERPRINT_MYSQL_USER,
+        "password": FINGERPRINT_MYSQL_PASSWORD,
+        "database": FINGERPRINT_MYSQL_DB
+    },
+}
+
 
 def test(Url, Offset, Dauer, FingerThreshold):
-    config = {
-        "database": {
-            "host": "localhost",
-            "user": "test123",
-            "password": "test123",
-            "database": "finger"
-        },
-    }
     djv = Dejavu(config)
-    # djv.fingerprint_directory(r"..\OrginalAudio", [".wav"])
 
     offset = Offset
     dauer = Dauer
@@ -111,6 +119,9 @@ def test(Url, Offset, Dauer, FingerThreshold):
 
 
 def StartFinger():
+    djv = Dejavu(config)
+    djv.fingerprint_directory("OriginalAudio", [".wav"])
+
     radios = ["https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
               "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
               "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20",
@@ -122,14 +133,16 @@ def StartFinger():
               "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
               "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20"]
 
-    threads = []
-    for radio in radios:
-        threads.append(threading.Thread(target=test, args=(radio, 2, 8, 15)))
-        threads[-1].start()
+    threads = [threading.Thread(target=test, args=(radio, 2, 8, 15))
+               for radio in radios]
 
-    for t in threads:
-        t.join()
+    for thread in threads:
+        thread.start()
+
+    return threads
 
 
 if __name__ == '__main__':
-    StartFinger()
+    threads = StartFinger()
+    for thread in threads:
+        thread.join()

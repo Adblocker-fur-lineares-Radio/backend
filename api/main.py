@@ -4,6 +4,7 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
+from api.Finger import StartFinger
 from api.db.db_helpers import NewTransaction
 from db.database_functions import insert_init
 
@@ -17,6 +18,12 @@ from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 import logging
 from api.logging_config import configure_logging
+
+configure_logging()
+logger = logging.getLogger("main.py")
+
+logger.info("START")
+
 
 with NewTransaction():
     insert_init()
@@ -95,6 +102,10 @@ def api(client):
 
 
 notifier = start_notifier(connections)
+threads = StartFinger()
+
 app.run(host="0.0.0.0")
 
 notifier.join()
+for thread in threads:
+    thread.join()

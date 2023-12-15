@@ -496,6 +496,12 @@ def get_radios_and_update_by_currently_playing(data):
 
 def insert_init():
     session = current_session.get()
+
+    stmt = select(func.count()).select_from(RadioStates)
+    cnt = session.scalar(stmt)
+    if cnt > 0:
+        return
+
     '''
     radiostatesstmt = (insert(RadioStates).values(id=1, label='Werbung'))
     session.execute(radiostatesstmt)
