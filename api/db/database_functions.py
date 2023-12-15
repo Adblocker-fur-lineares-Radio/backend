@@ -402,7 +402,6 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
         current_status_is_ad)
     ))
     switch_radios = session.all(stmt)
-    print(switch_radios)
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
     select_not_ads = select_ids.where(not_(ad_check))

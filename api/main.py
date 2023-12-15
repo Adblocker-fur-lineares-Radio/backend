@@ -31,8 +31,6 @@ with NewTransaction():
 configure_logging()
 logger = logging.getLogger("main.py")
 
-logger.info("START")
-
 app = Flask(__name__)
 sock = Sock(app)
 
