@@ -5,8 +5,8 @@ import asyncio
 import websockets
 # from api.db.database_functions import delete_connection_from_db
 
-# address = "ws://185.233.107.253:5000/api"
-address = "ws://127.0.0.1:5000/api"
+address = "ws://185.233.107.253:5000/api"
+# address = "ws://127.0.0.1:5000/api"
 
 
 def search_request(requested_updates=1):
@@ -59,7 +59,7 @@ async def StartClient():
 
         ##############################
         ##############################
-        commit = stream_request(preferred_radios=[1, 2])
+        commit = stream_request(preferred_radios=[5])
         ##############################
         ##############################
 

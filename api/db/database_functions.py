@@ -392,7 +392,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     # if inDerZeitVonWerbung xor status == 'werbung'
 
     hour_check = func.date_part('hour', now).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
-    minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time - 1)
+    minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time-1)
 
     ad_check = and_(hour_check, minute_check)
     current_status_is_ad = Radios.status_id == STATUS['ad']
@@ -402,16 +402,16 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
         ad_check,
         current_status_is_ad)
     ))
-
+    switch_radios = session.all(stmt)
+    print(switch_radios)
     select_ids = select(Radios.id).join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
     select_ads = select_ids.where(ad_check)
     select_not_ads = select_ids.where(not_(ad_check))
-    switch_radios = session.all(stmt)
 
-    stmt2 = update(Radios).where(Radios.id.in_(select_ads)).values(status_id=STATUS['ad'])
-    stmt3 = update(Radios).where(Radios.id.in_(select_not_ads)).values(status_id=STATUS['music'])
-    session.execute(stmt2)
+    stmt2 = (update(Radios).where(Radios.id.in_(select_ads)).values(status_id=STATUS['ad']))
+    stmt3 = (update(Radios).where(Radios.id.in_(select_not_ads)).values(status_id=STATUS['music']))
     session.execute(stmt3)
+    session.execute(stmt2)
 
     stmt4a = (select(func.min(RadioAdTime.ad_start_time))
               .where(RadioAdTime.ad_start_time > now_min))
