@@ -32,62 +32,26 @@ config = {
 def test(Url, Offset, Dauer, FingerThreshold):
     djv = Dejavu(config)
 
-    offset = Offset
-    dauer = Dauer
-    fingerThreshold = FingerThreshold
-
-    fname1 = "1_" + str(time.perf_counter())[2:] + ".wav"
-    f1 = open(fname1, 'wb')
     fname2 = "2_" + str(time.perf_counter())[2:] + ".wav"
     f2 = open(fname2, 'wb')
     fname3 = "3_" + str(time.perf_counter())[2:] + ".wav"
     f3 = open(fname3, 'wb')
 
     response = urlopen(Url, timeout=10.0)
-    start = time.time()
-    while True:
-        try:
-            audio = response.read(1024)
-            if time.time() <= start + dauer:
-                f1.write(audio)
-            else:
-                break
-
-            if start + dauer - offset <= time.time():
-                f2.write(audio)
-        except Exception as e:
-            logger.error("Error " + str(e))
-
-    f1.close()
-
-    try:
-        if os.stat(fname1).st_size > 0:
-            finger = djv.recognize(FileRecognizer, fname1)
-            if finger and finger["confidence"] > fingerThreshold:
-                logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger))
-                info = finger["song_name"].decode().split("_")
-                sender = info[0]
-                Typ = info[1]
-    except Exception as e:
-        logger.error("Error " + str(e))
-
-    os.remove(fname1)
-    i = 4
+    i = 3
     while True:
         start = time.time()
-        while time.time() - start <= dauer - offset:
+        while time.time() - start <= Dauer - Offset:
             audio = response.read(1024)
             f2.write(audio)
-
-            if start + dauer - 2 * offset < time.time():
+            if start + Dauer - 2 * Offset < time.time():
                 f3.write(audio)
-
         f2.close()
 
         try:
             if os.stat(fname2).st_size > 0:
                 finger2 = djv.recognize(FileRecognizer, fname2)
-                if finger2 and finger2["confidence"] > fingerThreshold:
+                if finger2 and finger2["confidence"] > FingerThreshold:
                     logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                     info = finger2["song_name"].decode().split("_")
                     sender = info[0]
@@ -100,19 +64,17 @@ def test(Url, Offset, Dauer, FingerThreshold):
         f2 = open(fname2, 'wb')
         i += 1
 
-        while time.time() - start <= 2 * dauer - offset:
+        while time.time() - start <= 2 * Dauer - Offset:
             audio = response.read(1024)
             f3.write(audio)
-
-            if start + 2 * dauer - 2 * offset < time.time():
+            if start + 2 * Dauer - 2 * Offset < time.time():
                 f2.write(audio)
-
         f3.close()
 
         try:
             if os.stat(fname3).st_size > 0:
                 finger3 = djv.recognize(FileRecognizer, fname3)
-                if finger3 and finger3["confidence"] > fingerThreshold:
+                if finger3 and finger3["confidence"] > FingerThreshold:
                     logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                     info = finger3["song_name"].decode().split("_")
                     sender = info[0]
@@ -130,18 +92,13 @@ def StartFinger():
     djv = Dejavu(config)
     djv.fingerprint_directory("OriginalAudio", [".wav"])
 
-    radios = ["https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
-              "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
-              "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20",
-              "https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref",
-              "https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high",
-              "https://stream.bigfm.de/saarland/aac-128"]
+    radios = [
+        "https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20",
+        "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
+        "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20"
+              ]
 
-    radios = ["https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
-              "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
-              "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20"]
-
-    threads = [threading.Thread(target=test, args=(radio, 2, 8, 20))
+    threads = [threading.Thread(target=test, args=(radio, 2, 8, 15))
                for radio in radios]
 
     for thread in threads:
