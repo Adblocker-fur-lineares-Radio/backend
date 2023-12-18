@@ -4,7 +4,7 @@ import asyncio
 import websockets
 import time
 
-# address = "ws://185.233.107.253:5000/api"
+# address = "ws://185.233.107.253:8080/api"
 address = "ws://127.0.0.1:8080/api"
 
 
@@ -58,7 +58,7 @@ async def StartClient():
 
         ##############################
         ##############################
-        commit = stream_request(preferred_radios=[5])
+        commit = stream_request(preferred_radios=[5,3])
         ##############################
         ##############################
 

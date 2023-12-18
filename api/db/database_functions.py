@@ -6,8 +6,11 @@ from sqlalchemy import *
 from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session, serialize_row
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     RadioAdTime, RadioMetadata, RadioStates
+from api.logging_config import configure_logging, csv_logging_write
 
+configure_logging()
 logger = logging.getLogger("database_functions.py")
+
 
 # to access list elements, first loop through the rows, then access the db attribute, will return empty list if no
 # query result
@@ -408,17 +411,17 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
 
     # get radios that switched
     hour_check = func.date_part('hour', now).between(RadioAdTime.ad_transmission_start, RadioAdTime.ad_transmission_end)
-    minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time-1)
+    minute_check = func.date_part('minute', now).between(RadioAdTime.ad_start_time, RadioAdTime.ad_end_time - 1)
 
     ad_check = and_(hour_check, minute_check)
     current_status_is_ad = Radios.status_id == STATUS['ad']
 
     stmt = (select(Radios)
-        .join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
-        .where(xor_(
-            ad_check,
-            current_status_is_ad)
-        ))
+    .join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
+    .where(xor_(
+        ad_check,
+        current_status_is_ad)
+    ))
     switch_radios = session.all(stmt)
 
     # get next switch time
@@ -504,7 +507,8 @@ def get_radios_and_update_by_currently_playing(data):
                                                   interpret=currently_playing[0],
                                                   timestamp=datetime.now()))
             session.execute(stmt2)
-
+            logger.info("Logging Metadata:")
+            csv_logging_write([item['stationId'], currently_playing[0], currently_playing[1]])
         stmt3 = update(Radios).where(Radios.station_id == station_id).values(
             current_interpret=currently_playing[0],
             currently_playing=currently_playing[1])

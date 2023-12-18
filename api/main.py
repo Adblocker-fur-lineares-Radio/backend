@@ -17,13 +17,13 @@ from db.database_functions import insert_new_connection, delete_all_connections_
 from db.database_functions import delete_connection_from_db
 from search_request import search_request, search_update_request
 import logging
-from api.logging_config import configure_logging
+from api.logging_config import configure_logging, csv_logging_setup
 
 configure_logging()
 logger = logging.getLogger("main.py")
 
 logger.info("START")
-
+csv_logging_setup()
 
 with NewTransaction():
     insert_init()
