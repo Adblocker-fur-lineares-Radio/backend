@@ -30,62 +30,70 @@ config = {
 
 
 def test(Url, Offset, Dauer, FingerThreshold):
-    djv = Dejavu(config)
-
-    fname2 = "2_" + str(time.perf_counter())[2:] + ".wav"
-    f2 = open(fname2, 'wb')
-    fname3 = "3_" + str(time.perf_counter())[2:] + ".wav"
-    f3 = open(fname3, 'wb')
-
-    response = urlopen(Url, timeout=10.0)
-    i = 3
     while True:
-        start = time.time()
-        while time.time() - start <= Dauer - Offset:
-            audio = response.read(1024)
-            f2.write(audio)
-            if start + Dauer - 2 * Offset < time.time():
-                f3.write(audio)
-        f2.close()
-
         try:
-            if os.stat(fname2).st_size > 0:
-                finger2 = djv.recognize(FileRecognizer, fname2)
-                if finger2 and finger2["confidence"] > FingerThreshold:
-                    logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
-                    info = finger2["song_name"].decode().split("_")
-                    sender = info[0]
-                    Typ = info[1]
+            djv = Dejavu(config)
+
+            fname2 = "2_" + str(time.perf_counter())[2:] + ".wav"
+            f2 = open(fname2, 'wb')
+            fname3 = "3_" + str(time.perf_counter())[2:] + ".wav"
+            f3 = open(fname3, 'wb')
+
+            response = urlopen(Url, timeout=10.0)
+            i = 3
+            while True:
+                start = time.time()
+                while time.time() - start <= Dauer - Offset:
+                    audio = response.read(1024)
+                    f2.write(audio)
+                    if start + Dauer - 2 * Offset < time.time():
+                        f3.write(audio)
+                f2.close()
+
+                try:
+                    if os.stat(fname2).st_size > 0:
+                        finger2 = djv.recognize(FileRecognizer, fname2)
+                        if finger2 and finger2["confidence"] > FingerThreshold:
+                            logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
+                            info = finger2["song_name"].decode().split("_")
+                            sender = info[0]
+                            Typ = info[1]
+                except Exception as e:
+                    logger.error("Error " + str(e))
+
+                os.remove(fname2)
+                fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
+                f2 = open(fname2, 'wb')
+                i += 1
+
+                while time.time() - start <= 2 * Dauer - Offset:
+                    audio = response.read(1024)
+                    f3.write(audio)
+                    if start + 2 * Dauer - 2 * Offset < time.time():
+                        f2.write(audio)
+                f3.close()
+
+                try:
+                    if os.stat(fname3).st_size > 0:
+                        finger3 = djv.recognize(FileRecognizer, fname3)
+                        if finger3 and finger3["confidence"] > FingerThreshold:
+                            logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
+                            info = finger3["song_name"].decode().split("_")
+                            sender = info[0]
+                            Typ = info[1]
+                except Exception as e:
+                    logger.error("Error " + str(e))
+
+                os.remove(fname3)
+                fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
+                f3 = open(fname3, 'wb')
+                i += 1
+
         except Exception as e:
-            logger.error("Error " + str(e))
+            logger.error("Fingerprintthread crashed: " + str(e))
+            time.sleep(10)
 
-        os.remove(fname2)
-        fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
-        f2 = open(fname2, 'wb')
-        i += 1
 
-        while time.time() - start <= 2 * Dauer - Offset:
-            audio = response.read(1024)
-            f3.write(audio)
-            if start + 2 * Dauer - 2 * Offset < time.time():
-                f2.write(audio)
-        f3.close()
-
-        try:
-            if os.stat(fname3).st_size > 0:
-                finger3 = djv.recognize(FileRecognizer, fname3)
-                if finger3 and finger3["confidence"] > FingerThreshold:
-                    logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
-                    info = finger3["song_name"].decode().split("_")
-                    sender = info[0]
-                    Typ = info[1]
-        except Exception as e:
-            logger.error("Error " + str(e))
-
-        os.remove(fname3)
-        fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
-        f3 = open(fname3, 'wb')
-        i += 1
 
 
 def StartFinger():
