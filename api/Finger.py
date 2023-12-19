@@ -1,5 +1,5 @@
 import logging
-
+from api.logging_config import csv_logging_write
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 import time
@@ -17,7 +17,6 @@ FINGERPRINT_MYSQL_PASSWORD = os.getenv('FINGERPRINT_MYSQL_PASSWORD')
 FINGERPRINT_MYSQL_DB = os.getenv('FINGERPRINT_MYSQL_DB')
 
 logger = logging.getLogger("Finger.py")
-
 
 config = {
     "database": {
@@ -58,6 +57,8 @@ def test(Url, Offset, Dauer, FingerThreshold):
                             info = finger2["song_name"].decode().split("_")
                             sender = info[0]
                             Typ = info[1]
+                            if str(Typ) == 'werbung':
+                                csv_logging_write([str(sender), 'start'], 'adtime.csv')
                             se = info[2]
                 except Exception as e:
                     logger.error("Error " + str(e))
@@ -82,6 +83,8 @@ def test(Url, Offset, Dauer, FingerThreshold):
                             info = finger3["song_name"].decode().split("_")
                             sender = info[0]
                             Typ = info[1]
+                            if str(Typ) == 'werbung':
+                                csv_logging_write([str(sender), 'start'], 'adtime.csv')
                             se = info[2]
                 except Exception as e:
                     logger.error("Error " + str(e))
@@ -94,8 +97,6 @@ def test(Url, Offset, Dauer, FingerThreshold):
         except Exception as e:
             logger.error("Fingerprintthread crashed: " + str(e))
             time.sleep(10)
-
-
 
 
 def StartFinger():
