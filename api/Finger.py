@@ -1,5 +1,5 @@
 import logging
-
+from api.logging_config import csv_logging_write
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 import time
@@ -17,7 +17,6 @@ FINGERPRINT_MYSQL_PASSWORD = os.getenv('FINGERPRINT_MYSQL_PASSWORD')
 FINGERPRINT_MYSQL_DB = os.getenv('FINGERPRINT_MYSQL_DB')
 
 logger = logging.getLogger("Finger.py")
-
 
 config = {
     "database": {
@@ -58,6 +57,8 @@ def test(Url, Offset, Dauer, FingerThreshold):
                             info = finger2["song_name"].decode().split("_")
                             sender = info[0]
                             Typ = info[1]
+                            if str(Typ) == 'werbung':
+                                csv_logging_write([str(sender), 'start'], 'adtime.csv')
                 except Exception as e:
                     logger.error("Error " + str(e))
 
@@ -81,6 +82,8 @@ def test(Url, Offset, Dauer, FingerThreshold):
                             info = finger3["song_name"].decode().split("_")
                             sender = info[0]
                             Typ = info[1]
+                            if str(Typ) == 'werbung':
+                                csv_logging_write([str(sender), 'start'], 'adtime.csv')
                 except Exception as e:
                     logger.error("Error " + str(e))
 
@@ -94,8 +97,6 @@ def test(Url, Offset, Dauer, FingerThreshold):
             time.sleep(10)
 
 
-
-
 def StartFinger():
     djv = Dejavu(config)
     djv.fingerprint_directory("OriginalAudio", [".wav"])
@@ -104,7 +105,7 @@ def StartFinger():
         "https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20",
         "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
         "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20"
-              ]
+    ]
 
     threads = [threading.Thread(target=test, args=(radio, 2, 8, 15))
                for radio in radios]

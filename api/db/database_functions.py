@@ -507,8 +507,9 @@ def get_radios_and_update_by_currently_playing(data):
                                                   interpret=currently_playing[0],
                                                   timestamp=datetime.now()))
             session.execute(stmt2)
-            logger.info("Logging Metadata:")
-            csv_logging_write([item['stationId'], currently_playing[0], currently_playing[1]])
+
+            csv_logging_write([item['stationId'], currently_playing[0], currently_playing[1]], 'metadata.csv')
+
         stmt3 = update(Radios).where(Radios.station_id == station_id).values(
             current_interpret=currently_playing[0],
             currently_playing=currently_playing[1])
