@@ -28,7 +28,7 @@ config = {
 }
 
 
-def test(Url, Offset, Dauer, FingerThreshold):
+def test(RadioUrl, RadioName, Offset, Dauer, FingerThreshold):
     while True:
         try:
             djv = Dejavu(config)
@@ -38,7 +38,7 @@ def test(Url, Offset, Dauer, FingerThreshold):
             fname3 = "3_" + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
-            response = urlopen(Url, timeout=10.0)
+            response = urlopen(RadioUrl, timeout=10.0)
             i = 3
             while True:
                 start = time.time()
@@ -55,11 +55,8 @@ def test(Url, Offset, Dauer, FingerThreshold):
                         if finger2 and finger2["confidence"] > FingerThreshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                             info = finger2["song_name"].decode().split("_")
-                            sender = info[0]
-                            Typ = info[1]
-                            if str(Typ) == 'werbung':
-                                csv_logging_write([str(sender), 'start'], 'adtime.csv')
-                            se = info[2]
+                            if str(info[1]) == 'Werbung':
+                                csv_logging_write([str(info[0]), 'start'], 'adtime.csv')
                 except Exception as e:
                     logger.error("Error " + str(e))
 
@@ -81,11 +78,8 @@ def test(Url, Offset, Dauer, FingerThreshold):
                         if finger3 and finger3["confidence"] > FingerThreshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                             info = finger3["song_name"].decode().split("_")
-                            sender = info[0]
-                            Typ = info[1]
-                            if str(Typ) == 'werbung':
-                                csv_logging_write([str(sender), 'start'], 'adtime.csv')
-                            se = info[2]
+                            if str(info[1]) == 'Werbung':
+                                csv_logging_write([str(info[0]), 'start'], 'adtime.csv')
                 except Exception as e:
                     logger.error("Error " + str(e))
 
@@ -104,17 +98,17 @@ def StartFinger():
     djv.fingerprint_directory("OriginalAudio", [".wav"])
 
     radios = [
-        "https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20",
-        "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
-        "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20",
-        "https://audiotainment-sw.streamabc.net/atsw-bigfm-aac-128-6355201?sABC=65802q7r%230%23rn9sqqp8s62pno3o9nn36nr41n95oo44%23enqvbqr&aw_0_1st.playerid=radiode&amsparams=playerid:radiode;skey:1702899070",
-        "https://dashitradio-stream28.radiohost.de/dashitradio_128?ref=radiode",
-        "https://antenneac--di--nacs-ais-lgc--04--cdn.cast.addradio.de/antenneac/live/mp3/high?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTdmc2Vhc2ltYiZ0PTE3MDI5ODU2MjEmcz03ODY2ZjI5YyNhMDYxOTllYTEwM2FlYzM0MTYyNDE1YzY2YTRjNDA0OA",
-        "https://d111.rndfnk.com/ard/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FC1W7JCTNQQ1J99JMF830D6A&sid=2ZiK4GavxtgsSaqtdowtdwysXnP&token=gsPLApWuDcXT2mizNStYL-aellTCTRzPgxKcfpRpQrs&tvf=yOB7cYH9oRdkMTExLnJuZGZuay5jb20",
-        "https://radiorst--di--nacs-ais-lgc--0c--cdn.cast.addradio.de/radiorst/live/aac/low?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTZpYml1Z2VwYiZ0PTE3MDI5ODU3MTUmcz03ODY2ZjI5YyNhZDUzNWQ2MGZhYjg3N2UxODZmMGFmZDVhYTE4YmViZA"
+        ["https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20", "1Live"],
+        ["https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20", "WDR 2"],
+        ["https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20", "BAYERN 1"],
+        ["https://audiotainment-sw.streamabc.net/atsw-bigfm-aac-128-6355201?sABC=65802q7r%230%23rn9sqqp8s62pno3o9nn36nr41n95oo44%23enqvbqr&aw_0_1st.playerid=radiode&amsparams=playerid:radiode;skey:1702899070", "BigFM"],
+        ["https://dashitradio-stream28.radiohost.de/dashitradio_128?ref=radiode", "100,5"],
+        ["https://antenneac--di--nacs-ais-lgc--04--cdn.cast.addradio.de/antenneac/live/mp3/high?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTdmc2Vhc2ltYiZ0PTE3MDI5ODU2MjEmcz03ODY2ZjI5YyNhMDYxOTllYTEwM2FlYzM0MTYyNDE1YzY2YTRjNDA0OA", "AntenneAC"],
+        ["https://d111.rndfnk.com/ard/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FC1W7JCTNQQ1J99JMF830D6A&sid=2ZiK4GavxtgsSaqtdowtdwysXnP&token=gsPLApWuDcXT2mizNStYL-aellTCTRzPgxKcfpRpQrs&tvf=yOB7cYH9oRdkMTExLnJuZGZuay5jb20", "BremenNext"],
+        ["https://radiorst--di--nacs-ais-lgc--0c--cdn.cast.addradio.de/radiorst/live/aac/low?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTZpYml1Z2VwYiZ0PTE3MDI5ODU3MTUmcz03ODY2ZjI5YyNhZDUzNWQ2MGZhYjg3N2UxODZmMGFmZDVhYTE4YmViZA", "RST"],
     ]
 
-    threads = [threading.Thread(target=test, args=(radio, 2, 8, 15))
+    threads = [threading.Thread(target=test, args=(radio[0], radio[1], 2, 8, 15))
                for radio in radios]
 
     for thread in threads:
