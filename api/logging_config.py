@@ -40,8 +40,6 @@ def calculate_time_difference_seconds(datetime_str1, datetime_str2):
     @return: the time difference in seconds or None
     """
     format_str = '%m/%d/%Y %I:%M:%S %p'
-    logger.info(datetime_str1)
-    logger.info(datetime_str2)
     try:
         datetime1 = datetime.strptime(datetime_str1, format_str)
         datetime2 = datetime.strptime(datetime_str2, format_str)
