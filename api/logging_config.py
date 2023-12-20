@@ -40,7 +40,8 @@ def calculate_time_difference_seconds(datetime_str1, datetime_str2):
     @return: the time difference in seconds or None
     """
     format_str = '%m/%d/%Y %I:%M:%S %p'
-
+    logger.info(datetime_str1)
+    logger.info(datetime_str2)
     try:
         datetime1 = datetime.strptime(datetime_str1, format_str)
         datetime2 = datetime.strptime(datetime_str2, format_str)
@@ -59,7 +60,10 @@ def listify(raw):
     @param raw: the raw string
     @return: the string as a list
     """
-    return raw.split(';')
+    try:
+        return raw.split(';')
+    except Exception as e:
+        logger.error("ERROR IN LISTIFY " + str(e))
 
 
 def check_for_duplicate(rowdata, filepath):
@@ -71,47 +75,68 @@ def check_for_duplicate(rowdata, filepath):
     @return: if the entry already exists
     """
     if filepath == '/logs/adtime.csv':
-        date = rowdata[0]
-        stationID = rowdata[1]
-        typeflag = rowdata[2]
 
-        latest_row = read_last_line(filepath)
-        if latest_row is not None:
-            lastest_row_list = listify(latest_row[0])
-        else:
-            return False
-
-        try:
-            if stationID == lastest_row_list[1]:
-                if typeflag == lastest_row_list[2]:
-                    if calculate_time_difference_seconds(date, lastest_row_list[0]) <= 8:
-                        return True
-        except Exception as e:
-            logger.error("ERROR IN CHECK FOR DUPLICATES " + str(e))
-
+        row_list = read_line(rowdata, filepath)
+        if row_list is not None:
+            i = 0
+            for entry in row_list:
+                latest_row_entry = listify(entry[i])
+                if check_for_same_station_and_flag(rowdata, latest_row_entry):
+                    return True
+                i += 1
     return False
 
 
-def read_last_line(filepath):
+def check_for_same_station_and_flag(rowdata, latest_row):
+    stationID = rowdata[1]
+    typeflag = rowdata[2]
+
+    if stationID == latest_row[1]:
+        if typeflag == latest_row[2]:
+
+            return True
+    return False
+
+
+def read_line(rowdata, filepath):
     """
     Reads the last line in the csv file
+    @param rowdata: the rowdata to be inserted
     @param filepath: the appropriate filepath
     @return: the line as a list with one element or None
     """
     try:
         with open(filepath, 'r', newline='') as file:
+            linelist = []
             reader = csv.reader(file)
-            last_line = None
             i = 0
-            for row in reversed(list(reader)):
-                last_line = row
-                i += 1
-                break
-            if i > 1:
-                return last_line
+
+            csvlines = list(reader)
+            if len(csvlines) > 0:
+                temp = csvlines.pop(0)
+                csvlines = reversed(csvlines)
+
+                for row in csvlines:
+                    if check_in_time_window(rowdata, row):
+                        linelist.append(row)
+                        i += 1
+                    else:
+                        return None
+                if i > 0:
+                    return linelist
     except Exception as e:
         logger.error("ERROR IN READING LAST LINE " + str(e))
     return None
+
+
+def check_in_time_window(rowdata, csvline):
+    csvline = listify(csvline[0])
+    try:
+        if calculate_time_difference_seconds(rowdata[0], csvline[0]) <= 8:
+            return True
+    except Exception as e:
+        logger.error("ERROR IN CHECK IN TIME WINDOW " + str(e))
+    return False
 
 
 def csv_logging_setup():

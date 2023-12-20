@@ -56,7 +56,7 @@ def test(RadioUrl, RadioName, Offset, Dauer, FingerThreshold):
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                             info = finger2["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
-                                csv_logging_write([str(info[0]), 'start'], 'adtime.csv')
+                                csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
                 except Exception as e:
                     logger.error("Error " + str(e))
 
@@ -79,7 +79,7 @@ def test(RadioUrl, RadioName, Offset, Dauer, FingerThreshold):
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                             info = finger3["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
-                                csv_logging_write([str(info[0]), 'start'], 'adtime.csv')
+                                csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
                 except Exception as e:
                     logger.error("Error " + str(e))
 
