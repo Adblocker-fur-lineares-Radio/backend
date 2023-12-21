@@ -64,5 +64,27 @@
         "logo_url": "https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png",
         "station_id": "bayern1main",
         "ad_duration": 3
+    },
+    {
+        "id": 7,
+        "name": "BremenNext",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://d111.rndfnk.com/ard/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FC1W7JCTNQQ1J99JMF830D6A&sid=2ZiK4GavxtgsSaqtdowtdwysXnP&token=gsPLApWuDcXT2mizNStYL-aellTCTRzPgxKcfpRpQrs&tvf=yOB7cYH9oRdkMTExLnJuZGZuay5jb20",
+        "logo_url": "https://www.radio.de/images/broadcasts/45/82/7493/4/c300.png",
+        "station_id": "bremennext",
+        "ad_duration": 3
+    },
+    {
+        "id": 8,
+        "name": "Radio RST",
+        "status_id": 2,
+        "currently_playing": null,
+        "current_interpret": null,
+        "stream_url": "https://radiorst--di--nacs-ais-lgc--0c--cdn.cast.addradio.de/radiorst/live/aac/low?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTZpYml1Z2VwYiZ0PTE3MDI5ODU3MTUmcz03ODY2ZjI5YyNhZDUzNWQ2MGZhYjg3N2UxODZmMGFmZDVhYTE4YmViZA",
+        "logo_url": "https://www.radio.de/images/broadcasts/e0/30/6929/7/c300.png",
+        "station_id": "radiorst",
+        "ad_duration": 3
     }
 ]

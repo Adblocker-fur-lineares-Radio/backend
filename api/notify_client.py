@@ -37,6 +37,7 @@ def notify_client_stream_guidance(connections, radio_id):
 def analyse_radio_stream(connections):
     """
     Endless loop that checks if radio needs switching, and calls search_update and stream_guidance
+    Is replaced by fingerprint
     @param connections: the connections
     @return: -
     """
@@ -88,9 +89,8 @@ def metadata_processing(connections):
             streams = update_metadata(radios)
             if len(streams) > 0:
                 notify_client_search_update(connections)
-            # for stream in streams:
-            #     notify_client_stream_guidance(connections, stream.id)
-            #     notify_client_search_update(connections)
+            for stream in streams:
+                notify_client_stream_guidance(connections, stream.id)
         time.sleep(15)
 
 
