@@ -46,10 +46,10 @@ def analyse_radio_stream(connections):
         with NewTransaction():
             now = int(time.strftime('%M', time.localtime()))
             [streams, switch_time] = get_radios_that_need_switch_by_time_and_update(now)
-
-            for stream, state in list({radio.id: radio for radio in streams}.values()):
-                notify_client_stream_guidance(connections, stream.id)
+            if len(streams) > 0:
                 notify_client_search_update(connections)
+            for stream in streams:
+                notify_client_stream_guidance(connections, stream.id)
 
         if switch_time > now:
             sleep_time = switch_time - now
@@ -105,4 +105,4 @@ def start_notifier(connections):
     metadata = Thread(target=metadata_processing, args=(connections,))
     analysis.start()
     metadata.start()
-    return analysis
+    return metadata

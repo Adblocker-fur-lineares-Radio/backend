@@ -518,9 +518,15 @@ def get_radios_and_update_by_currently_playing(data):
     return radios
 
 
-def set_radio_to_ad_status(radio):
+def set_radio_to_ad_status(radio_id):
     session = current_session.get()
-    stmt = update(Radios).where(Radios.id == radio.id).values(status_id=STATUS['ad'])
+    stmt = update(Radios).where(Radios.id == radio_id).values(status_id=STATUS['ad'])
+    session.execute(stmt)
+
+
+def set_radio_status_to_music(radio_id):
+    session = current_session.get()
+    stmt = update(Radios).where(Radios.id == radio_id).values(status_id=STATUS['music'])
     session.execute(stmt)
 
 
