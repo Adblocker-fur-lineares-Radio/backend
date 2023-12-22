@@ -5,7 +5,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
+        "stream_url": "https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20",
         "logo_url": "https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png",
         "station_id": "1live",
         "ad_duration": 0
@@ -27,7 +27,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://stream.dashitradio.de/dashitradio/mp3-128/stream.mp3?ref",
+        "stream_url": "https://dashitradio-stream28.radiohost.de/dashitradio_128?ref=radiode",
         "logo_url": "https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png",
         "station_id": "dashitradio",
         "ad_duration": 3
@@ -38,7 +38,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://antenneac--di--nacs-ais-lgc--06--cdn.cast.addradio.de/antenneac/live/mp3/high",
+        "stream_url": "https://antenneac--di--nacs-ais-lgc--04--cdn.cast.addradio.de/antenneac/live/mp3/high?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTdmc2Vhc2ltYiZ0PTE3MDI5ODU2MjEmcz03ODY2ZjI5YyNhMDYxOTllYTEwM2FlYzM0MTYyNDE1YzY2YTRjNDA0OA",
         "logo_url": "https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png",
         "station_id": "antenneac",
         "ad_duration": 3
@@ -49,7 +49,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://stream.bigfm.de/rlp/aac-128",
+        "stream_url": "https://audiotainment-sw.streamabc.net/atsw-bigfm-aac-128-6355201?sABC=65802q7r%230%23rn9sqqp8s62pno3o9nn36nr41n95oo44%23enqvbqr&aw_0_1st.playerid=radiode&amsparams=playerid:radiode;skey:1702899070",
         "logo_url": "https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png",
         "station_id": "bigfm",
         "ad_duration": 3
