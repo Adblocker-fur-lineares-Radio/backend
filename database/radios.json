@@ -8,7 +8,7 @@
         "stream_url": "https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
         "logo_url": "https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png",
         "station_id": "1live",
-        "ad_duration": 3
+        "ad_duration": 0
     },
     {
         "id": 2,
@@ -74,7 +74,7 @@
         "stream_url": "https://d111.rndfnk.com/ard/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FC1W7JCTNQQ1J99JMF830D6A&sid=2ZiK4GavxtgsSaqtdowtdwysXnP&token=gsPLApWuDcXT2mizNStYL-aellTCTRzPgxKcfpRpQrs&tvf=yOB7cYH9oRdkMTExLnJuZGZuay5jb20",
         "logo_url": "https://www.radio.de/images/broadcasts/45/82/7493/4/c300.png",
         "station_id": "bremennext",
-        "ad_duration": 3
+        "ad_duration": 0
     },
     {
         "id": 8,

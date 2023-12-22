@@ -31,7 +31,7 @@ config = {
 }
 
 
-def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_threshold, connections, radio_id, radio_ad_duration):
+def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_threshold, connections, radio_id, radio_ad_duration, radio_status):
     while True:
         try:
             djv = Dejavu(config)
@@ -59,7 +59,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                             info = finger2["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-                                if str(info[2]) == "Start":
+                                if radio_status == 2:
                                     with NewTransaction():
                                         set_radio_status_to_ad(radio_id)
                                         notify_client_search_update(connections)
@@ -68,7 +68,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         if radio_ad_duration > 0:
                                             set_radio_status_to_music(radio_id)
 
-                                if str(info[2]) == "End":
+                                if radio_status == 1:
                                     with NewTransaction():
                                         set_radio_status_to_music(radio_id)
                                         notify_client_search_update(connections)
@@ -96,17 +96,21 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                             info = finger3["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-                                if str(info[2]) == "Start":
+
+                                if radio_status == 2:
                                     with NewTransaction():
+                                        radio_status = 1
                                         set_radio_status_to_ad(radio_id)
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                                         time.sleep(radio_ad_duration * 60)
                                         if radio_ad_duration > 0:
                                             set_radio_status_to_music(radio_id)
+                                            radio_status = 2
 
-                                if str(info[2]) == "End":
+                                if radio_status == 1:
                                     with NewTransaction():
+                                        radio_status = 2
                                         set_radio_status_to_music(radio_id)
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
@@ -129,7 +133,7 @@ def start_fingerprint(connections):
     with NewTransaction():
         radios = get_all_radios()
         threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 2, 8, 15, connections,
-                                                                 radio.id, radio.ad_duration))for radio in radios]
+                                                                 radio.id, radio.ad_duration, radio.status))for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
