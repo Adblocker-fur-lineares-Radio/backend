@@ -44,17 +44,6 @@
         "ad_duration": 3
     },
     {
-        "id": 5,
-        "name": "bigFM",
-        "status_id": 2,
-        "currently_playing": null,
-        "current_interpret": null,
-        "stream_url": "https://audiotainment-sw.streamabc.net/atsw-bigfm-aac-128-6355201?sABC=65802q7r%230%23rn9sqqp8s62pno3o9nn36nr41n95oo44%23enqvbqr&aw_0_1st.playerid=radiode&amsparams=playerid:radiode;skey:1702899070",
-        "logo_url": "https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png",
-        "station_id": "bigfm",
-        "ad_duration": 3
-    },
-    {
         "id": 6,
         "name": "BAYERN 1",
         "status_id": 2,
