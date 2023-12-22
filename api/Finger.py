@@ -54,6 +54,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 try:
                     if os.stat(fname2).st_size > 0:
                         finger2 = djv.recognize(FileRecognizer, fname2)
+                        logger.info(finger2)
                         if finger2 and finger2["confidence"] > finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                             info = finger2["song_name"].decode().split("_")
@@ -91,6 +92,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 try:
                     if os.stat(fname3).st_size > 0:
                         finger3 = djv.recognize(FileRecognizer, fname3)
+                        logger.info(finger3)
                         if finger3 and finger3["confidence"] > finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                             info = finger3["song_name"].decode().split("_")
@@ -129,19 +131,13 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
 
 def start_fingerprint(connections):
     djv = Dejavu(config)
-    djv.fingerprint_directory("Jingles", [".wav"])
+    djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 2, 8, 15, connections,
-                                                                 radio.id, radio.ad_duration, radio.status))for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections,
+                                                                 radio.id, radio.ad_duration, radio.status_id))for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
 
     return threads
-
-
-if __name__ == '__main__':
-    fingerprint_threads = start_fingerprint()
-    for thread in fingerprint_threads:
-        thread.join()

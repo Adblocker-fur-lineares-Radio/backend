@@ -28,7 +28,7 @@ RUN pip install -r requirements.txt
 
 
 #COPY api api
-COPY Jingles/OriginalAudio OriginalAudio
+COPY Jingles/AD_SameLenghtJingles AD_SameLenghtJingles
 COPY database database
 
 EXPOSE 5000
