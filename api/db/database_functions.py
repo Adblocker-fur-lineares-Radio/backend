@@ -70,7 +70,7 @@ def stmt_select_radio_with_state():
 
 
 def transform_radio_with_state(result):
-    logger.info(f"logging: {result}")
+    #logger.info(f"logging: {result}")
     if isinstance(result, list):
         return [transform_radio_with_state(entry) for entry in result]
     res = serialize_row(result[0])
