@@ -54,7 +54,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 try:
                     if os.stat(fname2).st_size > 0:
                         finger2 = djv.recognize(FileRecognizer, fname2)
-                        logger.info(finger2)
+                        #logger.info(finger2)
                         if finger2 and finger2["confidence"] > finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                             info = finger2["song_name"].decode().split("_")
@@ -75,7 +75,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                 except Exception as e:
-                    logger.error("Error " + str(e))
+                    logger.error("Error " + str(radio_name) + ": "+ str(e))
 
                 os.remove(fname2)
                 fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -92,7 +92,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 try:
                     if os.stat(fname3).st_size > 0:
                         finger3 = djv.recognize(FileRecognizer, fname3)
-                        logger.info(finger3)
+                        #logger.info(finger3)
                         if finger3 and finger3["confidence"] > finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                             info = finger3["song_name"].decode().split("_")
@@ -117,7 +117,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                 except Exception as e:
-                    logger.error("Error " + str(e))
+                    logger.error("Error " + str(radio_name) + ": "+ str(e))
 
                 os.remove(fname3)
                 fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -125,7 +125,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 i += 1
 
         except Exception as e:
-            logger.error("Fingerprint Thread crashed: " + str(e))
+            logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": "+ str(e))
             time.sleep(10)
 
 
