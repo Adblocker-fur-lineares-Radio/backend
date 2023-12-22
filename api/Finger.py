@@ -8,7 +8,7 @@ import os
 import threading
 from datetime import datetime
 from api.notify_client import notify_client_search_update, notify_client_stream_guidance
-from api.db.database_functions import get_all_radios, set_radio_to_ad_status, set_radio_status_to_music
+from api.db.database_functions import get_all_radios, set_radio_status_to_ad, set_radio_status_to_music
 from api.db.db_helpers import NewTransaction
 
 from dotenv import load_dotenv
@@ -59,15 +59,16 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                             info = finger2["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-                                if "Start" in info[2]:
+                                if str(info[2]) == "Start":
                                     with NewTransaction():
-                                        set_radio_to_ad_status(radio_id)
+                                        set_radio_status_to_ad(radio_id)
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                                         time.sleep(radio_ad_duration * 60)
                                         if radio_ad_duration > 0:
                                             set_radio_status_to_music(radio_id)
-                                if "End" in info[2]:
+
+                                if str(info[2]) == "End":
                                     with NewTransaction():
                                         set_radio_status_to_music(radio_id)
                                         notify_client_search_update(connections)
@@ -95,13 +96,16 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                             info = finger3["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-                                if "Start" in info[2]:
+                                if str(info[2]) == "Start":
                                     with NewTransaction():
-                                        set_radio_to_ad_status(radio_id)
+                                        set_radio_status_to_ad(radio_id)
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                                         time.sleep(radio_ad_duration * 60)
-                                if "End" in info[2]:
+                                        if radio_ad_duration > 0:
+                                            set_radio_status_to_music(radio_id)
+
+                                if str(info[2]) == "End":
                                     with NewTransaction():
                                         set_radio_status_to_music(radio_id)
                                         notify_client_search_update(connections)

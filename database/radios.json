@@ -49,7 +49,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://streams.bigfm.de/bigfm-sb-128-mp3",
+        "stream_url": "https://stream.bigfm.de/rlp/aac-128",
         "logo_url": "https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png",
         "station_id": "bigfm",
         "ad_duration": 3
