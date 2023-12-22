@@ -62,17 +62,20 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
                                 if radio_status == 2:
                                     with NewTransaction():
+                                        radio_status = 1
                                         set_radio_status_to_ad(radio_id)
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                                         time.sleep(radio_ad_duration * 60)
                                         if radio_ad_duration > 0:
+                                            radio_status = 2
                                             set_radio_status_to_music(radio_id)
                                             notify_client_search_update(connections)
                                             notify_client_stream_guidance(connections, radio_id)
 
                                 if radio_status == 1:
                                     with NewTransaction():
+                                        radio_status = 2
                                         set_radio_status_to_music(radio_id)
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
