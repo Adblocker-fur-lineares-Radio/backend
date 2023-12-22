@@ -113,6 +113,8 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         time.sleep(radio_ad_duration * 60)
                                         if radio_ad_duration > 0:
                                             set_radio_status_to_music(radio_id)
+                                            notify_client_search_update(connections)
+                                            set_radio_status_to_music(radio_id)
                                             radio_status = 2
 
                                 if radio_status == 1:
