@@ -95,7 +95,7 @@ def test(RadioUrl, RadioName, Offset, Dauer, FingerThreshold):
 
 def StartFinger():
     djv = Dejavu(config)
-    djv.fingerprint_directory("OriginalAudio", [".wav"])
+    djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
 
     radios = [
         ["https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20", "1Live"],
@@ -108,7 +108,7 @@ def StartFinger():
         ["https://radiorst--di--nacs-ais-lgc--0c--cdn.cast.addradio.de/radiorst/live/aac/low?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTZpYml1Z2VwYiZ0PTE3MDI5ODU3MTUmcz03ODY2ZjI5YyNhZDUzNWQ2MGZhYjg3N2UxODZmMGFmZDVhYTE4YmViZA", "RST"],
     ]
 
-    threads = [threading.Thread(target=test, args=(radio[0], radio[1], 2, 8, 15))
+    threads = [threading.Thread(target=test, args=(radio[0], radio[1], 1, 5, 15))
                for radio in radios]
 
     for thread in threads:
