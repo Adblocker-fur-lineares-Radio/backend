@@ -132,7 +132,11 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 i += 1
 
         except Exception as e:
-            logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": "+ str(e))
+            logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": " + str(e))
+            test = os.listdir(os.getcwd())
+            for item in test:
+                if item.endswith(".wav") and str(radio_name) in item:
+                    os.remove(os.path.join(os.getcwd(), item))
             time.sleep(10)
 
 
@@ -147,8 +151,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections,
-                                                                 radio.id, radio.ad_duration, radio.status_id))for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections, radio.id, radio.ad_duration, radio.status_id))for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
