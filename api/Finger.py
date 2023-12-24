@@ -35,9 +35,9 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
     while True:
         try:
             djv = Dejavu(config)
-            fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
+            fname2 = "1" + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
             f2 = open(fname2, 'wb')
-            fname3 = "3_" + radio_name + str(time.perf_counter())[2:] + ".wav"
+            fname3 = "2" + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
             response = urlopen(radio_stream_url, timeout=10.0)
@@ -83,7 +83,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                     logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
 
                 os.remove(fname2)
-                fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
+                fname2 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f2 = open(fname2, 'wb')
                 i += 1
 
@@ -127,7 +127,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                     logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
 
                 os.remove(fname3)
-                fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
+                fname3 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f3 = open(fname3, 'wb')
                 i += 1
 
@@ -139,6 +139,12 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
 def start_fingerprint(connections):
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
+
+    test = os.listdir(os.getcwd())
+    for item in test:
+        if item.endswith(".wav"):
+            os.remove(os.path.join(os.getcwd(), item))
+
     with NewTransaction():
         radios = get_all_radios()
         threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections,
