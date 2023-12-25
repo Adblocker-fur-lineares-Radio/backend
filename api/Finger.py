@@ -10,6 +10,7 @@ from datetime import datetime
 from api.notify_client import notify_client_search_update, notify_client_stream_guidance
 from api.db.database_functions import get_all_radios, set_radio_status_to_ad, set_radio_status_to_music
 from api.db.db_helpers import NewTransaction
+import numpy as np
 
 from dotenv import load_dotenv
 
@@ -142,6 +143,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
 
 
 def start_fingerprint(connections):
+    np.seterr(divide='ignore')
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
 
@@ -152,7 +154,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections, radio.id, radio.ad_duration, radio.status_id))for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections, radio.id, radio.ad_duration, radio.status_id)) for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
