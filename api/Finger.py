@@ -3,7 +3,7 @@ from api.logging_config import csv_logging_write
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 import time
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 import os
 import threading
 from datetime import datetime
@@ -40,7 +40,8 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
             fname3 = "2" + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
-            response = urlopen(radio_stream_url, timeout=10.0)
+            req = Request(radio_stream_url, headers={'User-Agent': "Magic Browser"})
+            response = urlopen(req, timeout=10.0)
             i = 3
             while True:
                 start = time.time()
