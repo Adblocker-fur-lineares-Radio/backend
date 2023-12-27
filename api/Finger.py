@@ -82,7 +82,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
 
                 os.remove(fname2)
                 fname2 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -126,7 +126,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
 
                 os.remove(fname3)
                 fname3 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"

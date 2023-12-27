@@ -5,7 +5,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://f131.rndfnk.com/ard/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FBRZTS1K1TCD4KA2YZ1ND8X3&sid=2ZgOD39nA4EtSY3oeiU1mg7NEqn&token=T3AJgSK9quR8fmsSqvUmAeKyjM0Xl_YULkvmCOCZ4Uc&tvf=KnSoVLnHoRdmMTMxLnJuZGZuay5jb20",
+        "stream_url": "https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
         "logo_url": "https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png",
         "station_id": "1live",
         "ad_duration": 0
@@ -16,7 +16,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://d121.rndfnk.com/ard/wdr/wdr2/rheinland/mp3/128/stream.mp3?cid=01FBS03TJ7KW307WSY5W0W4NYB&sid=2WfgdbO7GvnQL9AwD8vhvPZ9fs0&token=cz5XFBkPm158lD9VGL4JxM-2zzMfE_3qEd-sX_kdaAA&tvf=x6sCXJp9jRdkMTIxLnJuZGZuay5jb20",
+        "stream_url": "https://wdr-wdr2-rheinland.icecastssl.wdr.de/wdr/wdr2/rheinland/mp3/128/stream.mp3",
         "logo_url": "https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png",
         "station_id": "wdr2",
         "ad_duration": 3
@@ -27,7 +27,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://dashitradio-stream28.radiohost.de/dashitradio_128?ref=radiode",
+        "stream_url": "https://stream.dashitradio.de/dashitradio/mp3-128/?ref=radiode",
         "logo_url": "https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png",
         "station_id": "dashitradio",
         "ad_duration": 3
@@ -38,7 +38,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://antenneac--di--nacs-ais-lgc--04--cdn.cast.addradio.de/antenneac/live/mp3/high?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTdmc2Vhc2ltYiZ0PTE3MDI5ODU2MjEmcz03ODY2ZjI5YyNhMDYxOTllYTEwM2FlYzM0MTYyNDE1YzY2YTRjNDA0OA",
+        "stream_url": "https://addrad.io/444z58p",
         "logo_url": "https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png",
         "station_id": "antenneac",
         "ad_duration": 3
@@ -49,7 +49,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://audiotainment-sw.streamabc.net/atsw-bigfm-aac-128-6355201?sABC=65802q7r%230%23rn9sqqp8s62pno3o9nn36nr41n95oo44%23enqvbqr&aw_0_1st.playerid=radiode&amsparams=playerid:radiode;skey:1702899070",
+        "stream_url": "https://stream.bigfm.de/rlp/mp3-128",
         "logo_url": "https://www.radio.de/images/broadcasts/af/e4/1444/4/c100.png",
         "station_id": "bigfm",
         "ad_duration": 3
@@ -60,7 +60,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://d121.rndfnk.com/ard/br/br1/franken/mp3/128/stream.mp3?cid=01FCDXH5496KNWQ5HK18GG4HED&sid=2ZDBcNAOweP69799K4rCsFc3Jgw&token=AaURPm1j9atmzP6x_QnojyKUrDLXmpuME5vqVWX1ZI0&tvf=XJJyGEmbnhdkMTIxLnJuZGZuay5jb20",
+        "stream_url": "https://dispatcher.rndfnk.com/br/br1/obb/mp3/low?aggregator=radiolisten-de",
         "logo_url": "https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png",
         "station_id": "bayern1main",
         "ad_duration": 3
@@ -71,7 +71,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://d111.rndfnk.com/ard/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de&cid=01FC1W7JCTNQQ1J99JMF830D6A&sid=2ZiK4GavxtgsSaqtdowtdwysXnP&token=gsPLApWuDcXT2mizNStYL-aellTCTRzPgxKcfpRpQrs&tvf=yOB7cYH9oRdkMTExLnJuZGZuay5jb20",
+        "stream_url": "https://icecast.radiobremen.de/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de",
         "logo_url": "https://www.radio.de/images/broadcasts/45/82/7493/4/c300.png",
         "station_id": "bremennext",
         "ad_duration": 0
@@ -82,7 +82,7 @@
         "status_id": 2,
         "currently_playing": null,
         "current_interpret": null,
-        "stream_url": "https://radiorst--di--nacs-ais-lgc--0c--cdn.cast.addradio.de/radiorst/live/aac/low?ar-distributor=f0a0&_art=dj0yJmlwPTkxLjU3LjI0OS4yMzQmaWQ9aWNzY3hsLTZpYml1Z2VwYiZ0PTE3MDI5ODU3MTUmcz03ODY2ZjI5YyNhZDUzNWQ2MGZhYjg3N2UxODZmMGFmZDVhYTE4YmViZA",
+        "stream_url": "https://addrad.io/4459gxr",
         "logo_url": "https://www.radio.de/images/broadcasts/e0/30/6929/7/c300.png",
         "station_id": "radiorst",
         "ad_duration": 3
