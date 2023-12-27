@@ -82,7 +82,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
 
                 os.remove(fname2)
                 fname2 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -126,7 +126,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                                         notify_client_search_update(connections)
                                         notify_client_stream_guidance(connections, radio_id)
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
 
                 os.remove(fname3)
                 fname3 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -154,7 +154,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 0.7, 5, 15, connections, radio.id, radio.ad_duration, radio.status_id)) for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 0.7, 5, 10, connections, radio.id, radio.ad_duration, radio.status_id)) for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
