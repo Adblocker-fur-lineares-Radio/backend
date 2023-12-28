@@ -70,7 +70,6 @@ def stmt_select_radio_with_state():
 
 
 def transform_radio_with_state(result):
-    #logger.info(f"logging: {result}")
     if isinstance(result, list):
         return [transform_radio_with_state(entry) for entry in result]
     res = serialize_row(result[0])
@@ -136,6 +135,17 @@ def get_connections_id_by_radio(radio_id):
 
     session = current_session.get()
     stmt = (select(ConnectionPreferredRadios.connection_id).where(ConnectionPreferredRadios.radio_id == radio_id))
+    return session.all(stmt)
+
+def get_connections_id_by_current_radio(radio_id):
+    """
+    Queries DB for a connection where the current radio equals the parameter radio_id and the state is allowed
+    @param radio_id: the primary key to be searched for
+    @return: the connection as a list of rows
+    """
+
+    session = current_session.get()
+    stmt = (select(Connections.id).where(Connections.current_radio_id == radio_id))
     return session.all(stmt)
 
 
@@ -514,7 +524,6 @@ def get_radios_and_update_by_currently_playing(data):
             current_interpret=currently_playing[0],
             currently_playing=currently_playing[1])
         session.execute(stmt3)
-
     return radios
 
 
