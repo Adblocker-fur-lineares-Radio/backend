@@ -6,9 +6,9 @@ import time
 from urllib.request import urlopen
 import os
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from api.notify_client import notify_client_search_update, notify_client_stream_guidance
-from api.db.database_functions import get_all_radios, set_radio_status_to_ad, set_radio_status_to_music
+from api.db.database_functions import get_all_radios, set_radio_status_to_ad, set_radio_status_to_music, get_radio_by_id
 from api.db.db_helpers import NewTransaction
 
 from dotenv import load_dotenv
@@ -31,18 +31,31 @@ config = {
 }
 
 
-def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_threshold, connections, radio_id, radio_ad_duration, radio_status):
+def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
+    status_change_time = None
+    with NewTransaction():
+        radio = get_radio_by_id(radio_id)
     while True:
         try:
+            if status_change_time and status_change_time == datetime.now() and radio['status_id'] == 1:
+                with NewTransaction():
+                    radio['status_id'] = 2
+                    set_radio_status_to_music(radio['id'])
+                    notify_client_search_update(connections)
+                    notify_client_stream_guidance(connections, radio['id'])
+                status_change_time = None
+            logger.info(radio['name'])
             djv = Dejavu(config)
-            fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
+            fname2 = "2_" + radio['name'] + str(time.perf_counter())[2:] + ".wav"
             f2 = open(fname2, 'wb')
-            fname3 = "3_" + radio_name + str(time.perf_counter())[2:] + ".wav"
+            fname3 = "3_" + radio['name'] + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
-            response = urlopen(radio_stream_url, timeout=10.0)
+            response = urlopen(radio['stream_url'], timeout=10.0)
             i = 3
             while True:
+
+
                 start = time.time()
                 while time.time() - start <= duration - offset:
                     audio = response.read(1024)
@@ -54,33 +67,33 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 try:
                     if os.stat(fname2).st_size > 0:
                         finger2 = djv.recognize(FileRecognizer, fname2)
-                        #logger.info(finger2)
                         if finger2 and finger2["confidence"] > finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                             info = finger2["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-                                if radio_status == 2:
+                                if radio['status_id'] == 2:
                                     with NewTransaction():
-                                        radio_status = 1
-                                        set_radio_status_to_ad(radio_id)
+                                        radio['status_id'] = 1
+                                        set_radio_status_to_ad(radio['id'])
                                         notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio_id)
-                                        time.sleep(radio_ad_duration * 60)
-                                        if radio_ad_duration > 0:
-                                            radio_status = 2
-                                            set_radio_status_to_music(radio_id)
+                                        notify_client_stream_guidance(connections, radio['id'])
+                                        time.sleep(radio['ad_duration'] * 60)
+                                        if radio['ad_duration'] > 0:
+                                            radio['status_id'] = 2
+                                            set_radio_status_to_music(radio['id'])
                                             notify_client_search_update(connections)
-                                            notify_client_stream_guidance(connections, radio_id)
-
-                                if radio_status == 1:
+                                            notify_client_stream_guidance(connections, radio['id'])
+                                        else:
+                                            status_change_time = datetime.now() + timedelta(minutes=6)
+                                if radio['status_id'] == 1:
                                     with NewTransaction():
-                                        radio_status = 2
-                                        set_radio_status_to_music(radio_id)
+                                        radio['status_id'] = 2
+                                        set_radio_status_to_music(radio['id'])
                                         notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio_id)
+                                        notify_client_stream_guidance(connections, radio['id'])
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": "+ str(e))
+                    logger.error("Error " + str(radio['name']) + ": " + str(e))
 
                 os.remove(fname2)
                 fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -97,34 +110,35 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 try:
                     if os.stat(fname3).st_size > 0:
                         finger3 = djv.recognize(FileRecognizer, fname3)
-                        #logger.info(finger3)
                         if finger3 and finger3["confidence"] > finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                             info = finger3["song_name"].decode().split("_")
                             if str(info[1]) == 'Werbung':
                                 csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
 
-                                if radio_status == 2:
+                                if radio['status_id'] == 2:
                                     with NewTransaction():
-                                        radio_status = 1
-                                        set_radio_status_to_ad(radio_id)
+                                        radio['status_id'] = 1
+                                        set_radio_status_to_ad(radio['id'])
                                         notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio_id)
-                                        time.sleep(radio_ad_duration * 60)
-                                        if radio_ad_duration > 0:
-                                            set_radio_status_to_music(radio_id)
+                                        notify_client_stream_guidance(connections, radio['id'])
+                                        time.sleep(radio['ad_duration'] * 60)
+                                        if radio['ad_duration'] > 0:
+                                            set_radio_status_to_music(radio['id'])
                                             notify_client_search_update(connections)
-                                            set_radio_status_to_music(radio_id)
-                                            radio_status = 2
+                                            set_radio_status_to_music(radio['id'])
+                                            radio['status_id'] = 2
+                                        else:
+                                            status_change_time = datetime.now() + timedelta(minutes=6)
 
-                                if radio_status == 1:
+                                if radio['status_id'] == 1:
                                     with NewTransaction():
-                                        radio_status = 2
-                                        set_radio_status_to_music(radio_id)
+                                        radio['status_id'] = 2
+                                        set_radio_status_to_music(radio['id'])
                                         notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio_id)
+                                        notify_client_stream_guidance(connections, radio['id'])
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": "+ str(e))
+                    logger.error("Error " + str(radio['name']) + ": " + str(e))
 
                 os.remove(fname3)
                 fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -132,7 +146,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 i += 1
 
         except Exception as e:
-            logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": "+ str(e))
+            logger.error("Fingerprint Thread crashed: " + str(radio['name']) + ": " + str(e))
             time.sleep(10)
 
 
@@ -141,8 +155,7 @@ def start_fingerprint(connections):
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 8, 15, connections,
-                                                                 radio.id, radio.ad_duration, radio.status_id))for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.id, 1, 8, 15, connections))for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
