@@ -3,13 +3,14 @@ from api.logging_config import csv_logging_write
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 import time
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 import os
 import threading
 from datetime import datetime, timedelta
 from api.notify_client import notify_client_search_update, notify_client_stream_guidance
 from api.db.database_functions import get_all_radios, set_radio_status_to_ad, set_radio_status_to_music, get_radio_by_id
 from api.db.db_helpers import NewTransaction
+import numpy as np
 
 from dotenv import load_dotenv
 
@@ -51,11 +52,10 @@ def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
             fname3 = "3_" + radio['name'] + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
-            response = urlopen(radio['stream_url'], timeout=10.0)
+            req = Request(radio['stream_url'], headers={'User-Agent': "Magic Browser"})
+            response = urlopen(req, timeout=10.0)
             i = 3
             while True:
-
-
                 start = time.time()
                 while time.time() - start <= duration - offset:
                     audio = response.read(1024)
@@ -96,7 +96,7 @@ def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
                     logger.error("Error " + str(radio['name']) + ": " + str(e))
 
                 os.remove(fname2)
-                fname2 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
+                fname2 = str(i) + "_" + str(radio['name']) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f2 = open(fname2, 'wb')
                 i += 1
 
@@ -141,18 +141,29 @@ def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
                     logger.error("Error " + str(radio['name']) + ": " + str(e))
 
                 os.remove(fname3)
-                fname3 = str(i) + "_" + str(time.perf_counter())[2:] + ".wav"
+                fname3 = str(i) + "_" + str(radio['name']) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f3 = open(fname3, 'wb')
                 i += 1
 
         except Exception as e:
             logger.error("Fingerprint Thread crashed: " + str(radio['name']) + ": " + str(e))
+            test = os.listdir(os.getcwd())
+            for item in test:
+                if item.endswith(".wav") and str(radio['name']) in item:
+                    os.remove(os.path.join(os.getcwd(), item))
             time.sleep(10)
 
 
 def start_fingerprint(connections):
+    np.seterr(divide='ignore')
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
+
+    test = os.listdir(os.getcwd())
+    for item in test:
+        if item.endswith(".wav"):
+            os.remove(os.path.join(os.getcwd(), item))
+
     with NewTransaction():
         radios = get_all_radios()
         threads = [threading.Thread(target=fingerprinting, args=(radio.id, 1, 8, 15, connections))for radio in radios]
