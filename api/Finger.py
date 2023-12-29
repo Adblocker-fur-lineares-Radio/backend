@@ -57,7 +57,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                         if finger2 and finger2["confidence"] >= finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
 
                 os.remove(fname2)
                 fname2 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
@@ -77,7 +77,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                         if finger3 and finger3["confidence"] >= finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
                 except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
 
                 os.remove(fname3)
                 fname3 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
