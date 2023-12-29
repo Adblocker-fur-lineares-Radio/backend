@@ -1,14 +1,12 @@
 import logging
-from api.logging_config import csv_logging_write
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 import time
 from urllib.request import urlopen, Request
 import os
 import threading
-from datetime import datetime, timedelta
-from api.notify_client import notify_client_search_update, notify_client_stream_guidance
-from api.db.database_functions import get_all_radios, set_radio_status_to_ad, set_radio_status_to_music, get_radio_by_id
+from datetime import datetime
+from api.db.database_functions import get_all_radios
 from api.db.db_helpers import NewTransaction
 import numpy as np
 
@@ -32,27 +30,16 @@ config = {
 }
 
 
-def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
-    status_change_time = None
-    with NewTransaction():
-        radio = get_radio_by_id(radio_id)
+def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_threshold):
     while True:
         try:
-            if status_change_time and status_change_time == datetime.now() and radio['status_id'] == 1:
-                with NewTransaction():
-                    radio['status_id'] = 2
-                    set_radio_status_to_music(radio['id'])
-                    notify_client_search_update(connections)
-                    notify_client_stream_guidance(connections, radio['id'])
-                status_change_time = None
-            logger.info(radio['name'])
             djv = Dejavu(config)
-            fname2 = "2_" + radio['name'] + str(time.perf_counter())[2:] + ".wav"
+            fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
             f2 = open(fname2, 'wb')
-            fname3 = "3_" + radio['name'] + str(time.perf_counter())[2:] + ".wav"
+            fname3 = "3_" + radio_name + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
-            req = Request(radio['stream_url'], headers={'User-Agent': "Magic Browser"})
+            req = Request(radio_stream_url, headers={'User-Agent': "Magic Browser"})
             response = urlopen(req, timeout=10.0)
             i = 3
             while True:
@@ -67,36 +54,13 @@ def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
                 try:
                     if os.stat(fname2).st_size > 0:
                         finger2 = djv.recognize(FileRecognizer, fname2)
-                        if finger2 and finger2["confidence"] > finger_threshold:
+                        if finger2 and finger2["confidence"] >= finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
-                            info = finger2["song_name"].decode().split("_")
-                            if str(info[1]) == 'Werbung':
-                                csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-                                if radio['status_id'] == 2:
-                                    with NewTransaction():
-                                        radio['status_id'] = 1
-                                        set_radio_status_to_ad(radio['id'])
-                                        notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio['id'])
-                                        time.sleep(radio['ad_duration'] * 60)
-                                        if radio['ad_duration'] > 0:
-                                            radio['status_id'] = 2
-                                            set_radio_status_to_music(radio['id'])
-                                            notify_client_search_update(connections)
-                                            notify_client_stream_guidance(connections, radio['id'])
-                                        else:
-                                            status_change_time = datetime.now() + timedelta(minutes=6)
-                                if radio['status_id'] == 1:
-                                    with NewTransaction():
-                                        radio['status_id'] = 2
-                                        set_radio_status_to_music(radio['id'])
-                                        notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio['id'])
                 except Exception as e:
-                    logger.error("Error " + str(radio['name']) + ": Fingerprinting error: ")
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
 
                 os.remove(fname2)
-                fname2 = str(i) + "_" + str(radio['name']) + "_" + str(time.perf_counter())[2:] + ".wav"
+                fname2 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f2 = open(fname2, 'wb')
                 i += 1
 
@@ -110,46 +74,21 @@ def fingerprinting(radio_id, offset, duration, finger_threshold, connections):
                 try:
                     if os.stat(fname3).st_size > 0:
                         finger3 = djv.recognize(FileRecognizer, fname3)
-                        if finger3 and finger3["confidence"] > finger_threshold:
+                        if finger3 and finger3["confidence"] >= finger_threshold:
                             logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
-                            info = finger3["song_name"].decode().split("_")
-                            if str(info[1]) == 'Werbung':
-                                csv_logging_write([str(info[0]), info[2]], 'adtime.csv')
-
-                                if radio['status_id'] == 2:
-                                    with NewTransaction():
-                                        radio['status_id'] = 1
-                                        set_radio_status_to_ad(radio['id'])
-                                        notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio['id'])
-                                        time.sleep(radio['ad_duration'] * 60)
-                                        if radio['ad_duration'] > 0:
-                                            set_radio_status_to_music(radio['id'])
-                                            notify_client_search_update(connections)
-                                            set_radio_status_to_music(radio['id'])
-                                            radio['status_id'] = 2
-                                        else:
-                                            status_change_time = datetime.now() + timedelta(minutes=6)
-
-                                if radio['status_id'] == 1:
-                                    with NewTransaction():
-                                        radio['status_id'] = 2
-                                        set_radio_status_to_music(radio['id'])
-                                        notify_client_search_update(connections)
-                                        notify_client_stream_guidance(connections, radio['id'])
                 except Exception as e:
-                    logger.error("Error " + str(radio['name']) + ": Fingerprinting error: ")
+                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: " + str(e))
 
                 os.remove(fname3)
-                fname3 = str(i) + "_" + str(radio['name']) + "_" + str(time.perf_counter())[2:] + ".wav"
+                fname3 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f3 = open(fname3, 'wb')
                 i += 1
 
         except Exception as e:
-            logger.error("Fingerprint Thread crashed: " + str(radio['name']) + ": " + str(e))
+            logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": " + str(e))
             test = os.listdir(os.getcwd())
             for item in test:
-                if item.endswith(".wav") and str(radio['name']) in item:
+                if item.endswith(".wav") and str(radio_name) in item:
                     os.remove(os.path.join(os.getcwd(), item))
             time.sleep(10)
 
@@ -166,7 +105,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.id, 0.5, 5, 10, connections)) for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 5, 10)) for radio in radios]
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()
