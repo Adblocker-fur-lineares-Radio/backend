@@ -117,7 +117,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 5, q)) for radio in
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 0.6, 5, q)) for radio in
                    radios]
 
     threads.insert(0, a)
