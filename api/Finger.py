@@ -8,7 +8,7 @@ import threading
 from datetime import datetime
 from api.db.database_functions import get_all_radios
 from api.db.db_helpers import NewTransaction
-import numpy as np
+import queue
 
 from dotenv import load_dotenv
 
@@ -30,10 +30,9 @@ config = {
 }
 
 
-def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_threshold):
+def fingerprinting(radio_stream_url, radio_name, offset, duration, q):
     while True:
         try:
-            djv = Dejavu(config)
             fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
             f2 = open(fname2, 'wb')
             fname3 = "3_" + radio_name + str(time.perf_counter())[2:] + ".wav"
@@ -46,55 +45,67 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, finger_thresh
                 start = time.time()
                 while time.time() - start <= duration - offset:
                     audio = response.read(1024)
-                    f2.write(audio)
-                    if start + duration - 2 * offset < time.time():
-                        f3.write(audio)
+                    if audio:
+                        f2.write(audio)
+                        if start + duration - 2 * offset < time.time():
+                            f3.write(audio)
+
                 f2.close()
-
-                try:
-                    if os.stat(fname2).st_size > 0:
-                        finger2 = djv.recognize(FileRecognizer, fname2)
-                        if finger2 and finger2["confidence"] >= finger_threshold:
-                            logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger2))
-                except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
-
-                os.remove(fname2)
+                ftmp = fname2
+                q.put(ftmp)
                 fname2 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f2 = open(fname2, 'wb')
                 i += 1
 
                 while time.time() - start <= 2 * duration - offset:
                     audio = response.read(1024)
-                    f3.write(audio)
-                    if start + 2 * duration - 2 * offset < time.time():
-                        f2.write(audio)
+                    if audio:
+                        f3.write(audio)
+                        if start + 2 * duration - 2 * offset < time.time():
+                            f2.write(audio)
                 f3.close()
-
-                try:
-                    if os.stat(fname3).st_size > 0:
-                        finger3 = djv.recognize(FileRecognizer, fname3)
-                        if finger3 and finger3["confidence"] >= finger_threshold:
-                            logger.info(datetime.now().strftime("%H:%M:%S") + ": " + str(finger3))
-                except Exception as e:
-                    logger.error("Error " + str(radio_name) + ": Fingerprinting error: ")
-
-                os.remove(fname3)
+                ftmp2 = fname3
+                q.put(ftmp2)
                 fname3 = str(i) + "_" + str(radio_name) + "_" + str(time.perf_counter())[2:] + ".wav"
                 f3 = open(fname3, 'wb')
                 i += 1
 
         except Exception as e:
             logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": " + str(e))
-            test = os.listdir(os.getcwd())
-            for item in test:
-                if item.endswith(".wav") and str(radio_name) in item:
-                    os.remove(os.path.join(os.getcwd(), item))
             time.sleep(10)
 
 
+def analyse(q, FingerThreshold):
+    djv = Dejavu(config)
+    lastq = 0
+    while True:
+        qneu = q.qsize()
+        if lastq != qneu:
+            lastq = qneu
+            logger.info("Queue: " + str(qneu))
+        if q.qsize() > 0:
+            datei = q.get()
+            try:
+                if os.stat(datei).st_size > 0:
+                    finger = djv.recognize(FileRecognizer, datei)
+                    if finger and finger["confidence"] > FingerThreshold:
+                        logger.info(datetime.now().strftime("%H:%M:%S") + " " + datei.split("_")[0] + ": " + str(finger))
+                        q.task_done()
+                        os.remove(datei)
+                    else:
+                        q.task_done()
+                        os.remove(datei)
+                else:
+                    logger.error("File is empty: " + datei)
+                    q.task_done()
+                    os.remove(datei)
+            except Exception as e:
+                q.task_done()
+                os.remove(datei)
+                logger.error("Error: " + str(e))
+
+
 def start_fingerprint(connections):
-    np.seterr(divide='ignore')
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
 
@@ -103,10 +114,20 @@ def start_fingerprint(connections):
         if item.endswith(".wav"):
             os.remove(os.path.join(os.getcwd(), item))
 
+    q = queue.Queue()
+    a = threading.Thread(target=analyse, args=(q, 10))
+    b = threading.Thread(target=analyse, args=(q, 10))
+    c = threading.Thread(target=analyse, args=(q, 10))
+    d = threading.Thread(target=analyse, args=(q, 10))
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 5, 10)) for radio in radios]
+        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 5, q)) for radio in
+                   radios]
 
+    threads.insert(0, a)
+    threads.insert(0, b)
+    threads.insert(0, c)
+    threads.insert(0, d)
     for fingerprint_thread in threads:
         fingerprint_thread.start()
 
