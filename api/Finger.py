@@ -77,12 +77,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, q):
 
 def analyse(q, FingerThreshold):
     djv = Dejavu(config)
-    lastq = 0
     while True:
-        qneu = q.qsize()
-        if lastq != qneu:
-            lastq = qneu
-            logger.info("Queue: " + str(qneu))
         if q.qsize() > 0:
             datei = q.get()
             try:
@@ -119,6 +114,7 @@ def start_fingerprint(connections):
     b = threading.Thread(target=analyse, args=(q, 10))
     c = threading.Thread(target=analyse, args=(q, 10))
     d = threading.Thread(target=analyse, args=(q, 10))
+
     with NewTransaction():
         radios = get_all_radios()
         threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 1, 5, q)) for radio in
@@ -128,6 +124,7 @@ def start_fingerprint(connections):
     threads.insert(0, b)
     threads.insert(0, c)
     threads.insert(0, d)
+
     for fingerprint_thread in threads:
         fingerprint_thread.start()
 
