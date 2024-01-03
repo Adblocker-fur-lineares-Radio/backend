@@ -30,7 +30,7 @@ config = {
 }
 
 
-def fingerprinting(radio_stream_url, radio_name, offset, duration, q):
+def record(radio_stream_url, radio_name, offset, duration, q):
     while True:
         try:
             fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
@@ -75,7 +75,7 @@ def fingerprinting(radio_stream_url, radio_name, offset, duration, q):
             time.sleep(10)
 
 
-def analyse(q, FingerThreshold):
+def fingerprint(q, FingerThreshold):
     djv = Dejavu(config)
     while True:
         if q.qsize() > 0:
@@ -110,14 +110,14 @@ def start_fingerprint(connections):
             os.remove(os.path.join(os.getcwd(), item))
 
     q = queue.Queue()
-    a = threading.Thread(target=analyse, args=(q, 10))
-    b = threading.Thread(target=analyse, args=(q, 10))
-    c = threading.Thread(target=analyse, args=(q, 10))
-    d = threading.Thread(target=analyse, args=(q, 10))
+    a = threading.Thread(target=fingerprint, args=(q, 10))
+    b = threading.Thread(target=fingerprint, args=(q, 10))
+    c = threading.Thread(target=fingerprint, args=(q, 10))
+    d = threading.Thread(target=fingerprint, args=(q, 10))
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=fingerprinting, args=(radio.stream_url, radio.name, 0.6, 5, q)) for radio in
+        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 0.6, 5, q)) for radio in
                    radios]
 
     threads.insert(0, a)
