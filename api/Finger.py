@@ -97,7 +97,7 @@ def fingerprint(q, FingerThreshold):
             except Exception as e:
                 q.task_done()
                 os.remove(datei)
-                logger.error("Error: " + str(e))
+                logger.error("Fingerprinting Error in " + datei)
 
 
 def start_fingerprint(connections):
@@ -117,7 +117,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 0.6, 5, q)) for radio in
+        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 0.5, 5, q)) for radio in
                    radios]
 
     threads.insert(0, a)
