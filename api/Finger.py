@@ -84,7 +84,7 @@ def analyse(q, FingerThreshold):
                 if os.stat(datei).st_size > 0:
                     finger = djv.recognize(FileRecognizer, datei)
                     if finger and finger["confidence"] > FingerThreshold:
-                        logger.info(datetime.now().strftime("%H:%M:%S") + " " + datei.split("_")[0] + ": " + str(finger))
+                        logger.info(datei.split("_")[1] + ": " + str(finger))
                         q.task_done()
                         os.remove(datei)
                     else:
