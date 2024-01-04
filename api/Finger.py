@@ -34,9 +34,9 @@ def record(radio_stream_url, radio_name, offset, duration, q):
     while True:
         try:
             ThreadStart = time.time()
-            fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
+            fname2 = "2_" + radio_name + "_" + str(time.perf_counter())[2:] + ".wav"
             f2 = open(fname2, 'wb')
-            fname3 = "3_" + radio_name + str(time.perf_counter())[2:] + ".wav"
+            fname3 = "3_" + radio_name + "_" + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
             req = Request(radio_stream_url, headers={'User-Agent': 'Mozilla/5.0'})
