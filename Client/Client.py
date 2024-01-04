@@ -53,7 +53,7 @@ def format_radio(radio, with_padding=True):
     name = f"{radio['name']:<10}"
     if not with_padding:
         name = f"{radio['name']}"
-    return f"{name}: {radio['current_interpret']} - {radio['currently_playing']}"
+    return f"({radio['id']}) {name}: {radio['current_interpret']} - {radio['currently_playing']}"
 
 
 async def StartClient():
@@ -65,7 +65,7 @@ async def StartClient():
 
         ##############################
         ##############################
-        commit = stream_request(preferred_radios=[2, 3])
+        commit = stream_request(preferred_radios=[3, 8, 2])
         ##############################
         ##############################
 
@@ -90,6 +90,10 @@ async def StartClient():
 
                 if data2["type"] == "search_update":
                     print("\n".join(map(format_radio, data2["radios"])))
+                    if data2["remaining_updates"] <= 1:
+                        commit = search_request(5)
+                        await ws.send(commit)
+                        print(f'Client sent: {commit}')
 
                 elif data2["type"] == "radio_stream_event":
                     print(f"switching to (with buffer {data2['buffer']}):")
