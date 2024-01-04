@@ -33,16 +33,19 @@ config = {
 def record(radio_stream_url, radio_name, offset, duration, q):
     while True:
         try:
+            ThreadStart = time.time()
             fname2 = "2_" + radio_name + str(time.perf_counter())[2:] + ".wav"
             f2 = open(fname2, 'wb')
             fname3 = "3_" + radio_name + str(time.perf_counter())[2:] + ".wav"
             f3 = open(fname3, 'wb')
 
-            req = Request(radio_stream_url, headers={'User-Agent': "Magic Browser"})
+            req = Request(radio_stream_url, headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(req, timeout=10.0)
             i = 3
             while True:
                 start = time.time()
+                if start - ThreadStart == 21600:
+                    break
                 while time.time() - start <= duration - offset:
                     audio = response.read(1024)
                     if audio:
