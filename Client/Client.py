@@ -53,7 +53,7 @@ def format_radio(radio, with_padding=True):
     name = f"{radio['name']:<10}"
     if not with_padding:
         name = f"{radio['name']}"
-    return f"({radio['id']}) {name}: {radio['current_interpret']} - {radio['currently_playing']}"
+    return f"({radio['id']}) {name}: {'(' + radio['status_label'] + ')':<10} {radio['current_interpret']} - {radio['currently_playing']}"
 
 
 async def StartClient():
@@ -65,7 +65,7 @@ async def StartClient():
 
         ##############################
         ##############################
-        commit = stream_request(preferred_radios=[3, 8, 2])
+        commit = stream_request(preferred_radios=[6, 8, 2])
         ##############################
         ##############################
 
@@ -101,6 +101,7 @@ async def StartClient():
 
                     new_url = data2["switch_to"]["stream_url"]
                     if url == new_url:
+                        print("nvm was actually an update of metadata")
                         continue
 
                     if url != "":
