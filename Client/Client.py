@@ -4,8 +4,8 @@ import asyncio
 import websockets
 import time
 
-# address = "ws://185.233.107.253:8080/api"
-address = "ws://127.0.0.1:8080/api"
+address = "ws://185.233.107.253:8080/api"
+# address = "ws://127.0.0.1:8080/api"
 
 
 def search_request(requested_updates=1):
@@ -49,6 +49,13 @@ def stream_request(preferred_radios=None, preferred_experience=None):
     }))
 
 
+def format_radio(radio, with_padding=True):
+    name = f"{radio['name']:<10}"
+    if not with_padding:
+        name = f"{radio['name']}"
+    return f"{name}: {radio['current_interpret']} - {radio['currently_playing']}"
+
+
 async def StartClient():
     """
     Starts Client -> connect to server -> asks for radio -> play radio -> permanently polling for update
@@ -58,30 +65,17 @@ async def StartClient():
 
         ##############################
         ##############################
-        commit = stream_request(preferred_radios=[5,3])
+        commit = stream_request(preferred_radios=[2, 3])
         ##############################
         ##############################
 
         await ws.send(commit)
         print(f'Client sent: {commit}')
-        msg = await asyncio.wait_for(ws.recv(), timeout=300)
-        print(f"Client received: {msg}")
-
-        data = json.loads(msg)
-        if data["type"] != "radio_stream_event":
-            print(f"Error: No valid answer received: '{data['type']}' instead of 'radio_stream_event'")
-            return
 
         instance = vlc.Instance()
         player = instance.media_player_new()
-        media = instance.media_new(data["switch_to"]["stream_url"])
-        player.set_media(media)
-        player.play()
 
-        time.sleep(0.5)  # buffer
-        player.set_pause(1)  # buffer
-        time.sleep(data["buffer"])  # buffer
-        player.play()  # buffer
+        url = ""
 
         commit = search_request(5)
         await ws.send(commit)
@@ -95,12 +89,20 @@ async def StartClient():
                 data2 = json.loads(msg)
 
                 if data2["type"] == "search_update":
-                    pass
+                    print("\n".join(map(format_radio, data2["radios"])))
 
                 elif data2["type"] == "radio_stream_event":
+                    print(f"switching to (with buffer {data2['buffer']}):")
+                    print(format_radio(data2['switch_to'], with_padding=False))
 
-                    player.stop()
-                    media = instance.media_new(data2["switch_to"]["stream_url"])
+                    new_url = data2["switch_to"]["stream_url"]
+                    if url == new_url:
+                        continue
+
+                    if url != "":
+                        player.stop()
+
+                    media = instance.media_new(new_url)
                     player.set_media(media)
                     player.play()
 
@@ -108,6 +110,8 @@ async def StartClient():
                     player.set_pause(1)  # buffer
                     time.sleep(data2["buffer"])  # buffer
                     player.play()  # buffer
+
+                    url = new_url
 
                 elif data2["type"] == "radio_update_event":
                     pass
