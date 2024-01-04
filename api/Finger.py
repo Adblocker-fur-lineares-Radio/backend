@@ -44,7 +44,7 @@ def record(radio_stream_url, radio_name, offset, duration, q):
             i = 3
             while True:
                 start = time.time()
-                if start - ThreadStart == 21600:
+                if start - ThreadStart >= 21300:
                     break
                 while time.time() - start <= duration - offset:
                     audio = response.read(1024)
