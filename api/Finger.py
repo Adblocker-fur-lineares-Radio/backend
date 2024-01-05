@@ -38,9 +38,9 @@ class FilenameInfo:
         filename = str(filename)
         self.filename = filename
         splitted = filename.split('_')
-        self.radio_name = str(splitted[0])
-        self.status = str(splitted[1])
-        self.type = str(splitted[2])
+        self.radio_name = splitted[0]
+        self.status = splitted[1]
+        self.type = splitted[2]
 
 
 def read_for(response, seconds):
@@ -80,9 +80,10 @@ def record(radio_stream_url, radio_name, offset, duration, queue):
 
                 # now read overlapping that will be put into both files
                 overlapping = read_for(response, offset)
-                piece.write(audio)
+                piece.write(overlapping)
 
                 # file is ready
+                piece.flush()
                 piece.close()
                 queue.put((radio_name, piece.name))
 
@@ -98,20 +99,20 @@ def record(radio_stream_url, radio_name, offset, duration, queue):
 def fingerprint(q, FingerThreshold):
     djv = Dejavu(config)
     while True:
-        radio_name, file = q.get()
+        radio_name, filename = q.get()
         try:
-            if os.stat(file).st_size > 0:
-                finger = djv.recognize(FileRecognizer, file)
+            if os.stat(filename).st_size > 0:
+                finger = djv.recognize(FileRecognizer, filename)
                 if finger and finger["confidence"] > FingerThreshold:
                     info = FilenameInfo(finger["song_name"])
                     logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
             else:
                 logger.error("File is empty: " + radio_name)
         except Exception as e:
-            logger.error("Fingerprinting Error in " + radio_name + ": " + e)
+            logger.error("Fingerprinting Error in " + radio_name + ": " + str(e))
         finally:
             q.task_done()
-            os.remove(file)
+            os.remove(filename)
 
 
 def start_fingerprint(connections):
@@ -131,7 +132,7 @@ def start_fingerprint(connections):
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 2, 5, q)) for radio in
+        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 1, 5, q)) for radio in
                    radios]
 
     threads.append(a)
