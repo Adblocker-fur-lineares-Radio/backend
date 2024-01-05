@@ -1,16 +1,17 @@
 import logging
-from tempfile import NamedTemporaryFile
-
-from dejavu.recognize import FileRecognizer
-from dejavu import Dejavu
-from time import time, sleep
-from urllib.request import urlopen, Request
 import os
 import threading
+import queue
+from time import time, sleep
+from tempfile import NamedTemporaryFile
+from urllib.request import urlopen, Request
+from dejavu.recognize import FileRecognizer
+from dejavu import Dejavu
+from logging_config import csv_logging_write
+from dotenv import load_dotenv
+
 from api.db.database_functions import get_all_radios
 from api.db.db_helpers import NewTransaction
-import queue
-import io
 
 from dotenv import load_dotenv
 
@@ -106,6 +107,7 @@ def fingerprint(q, FingerThreshold):
                 if finger and finger["confidence"] > FingerThreshold:
                     info = FilenameInfo(finger["song_name"])
                     logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
+                    csv_logging_write([radio_name, "Werbung"], "adtime.csv")
             else:
                 logger.error("File is empty: " + radio_name)
         except Exception as e:

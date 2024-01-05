@@ -173,7 +173,7 @@ def adtime_logging_init():
     @return: -
     """
     filename = '/logs/adtime.csv'
-    header = ['date', 'stationID', 'typeflag']
+    header = ['date', 'stationName', 'typeflag']
     try:
         with file_lock:
             with open(filename, 'a', newline='') as csv_file:
