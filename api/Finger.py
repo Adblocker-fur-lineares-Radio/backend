@@ -35,11 +35,12 @@ STREAM_AUTO_RESTART = 6 * 60 * 60 - 10 * 60  # 6h - 10min
 
 class FilenameInfo:
     def __init__(self, filename):
+        filename = str(filename)
         self.filename = filename
         splitted = filename.split('_')
-        self.radio_name = splitted[0]
-        self.status = splitted[1]
-        self.type = splitted[2]
+        self.radio_name = str(splitted[0])
+        self.status = str(splitted[1])
+        self.type = str(splitted[2])
 
 
 def record(radio_stream_url, radio_name, offset_count, duration, q):
@@ -56,17 +57,17 @@ def record(radio_stream_url, radio_name, offset_count, duration, q):
             index = 0
 
             while True:
-                # restart after giving time (so we won't get kicked out)
-                if time() - ThreadStart >= STREAM_AUTO_RESTART:
-                    response.close()
-                    break
-
-                # circle through
+                # cycle through
                 if records[index] is not None:
                     records[index].close()
                     q.put((radio_name, records[index].name))
                 records[index] = NamedTemporaryFile(delete=False)
                 index = (index + 1) % len(records)
+
+                # restart after giving time (so we won't get kicked out)
+                if time() - ThreadStart >= STREAM_AUTO_RESTART:
+                    response.close()
+                    break
 
                 # take audio for offset time
                 chunk = b""
@@ -74,7 +75,7 @@ def record(radio_stream_url, radio_name, offset_count, duration, q):
                 while time() - start < offset:
                     audio = response.read(1024)
                     if not audio:
-                        break
+                        continue
                     chunk += audio
 
                 for r in records:
@@ -87,7 +88,6 @@ def record(radio_stream_url, radio_name, offset_count, duration, q):
 
 
 def fingerprint(q, FingerThreshold):
-    print("Fingerprinting")
     djv = Dejavu(config)
     while True:
         radio_name, file = q.get()
@@ -95,7 +95,8 @@ def fingerprint(q, FingerThreshold):
             if os.stat(file).st_size > 0:
                 finger = djv.recognize(FileRecognizer, file)
                 if finger and finger["confidence"] > FingerThreshold:
-                    logger.info(radio_name + ": " + str(finger))
+                    info = FilenameInfo(finger["song_name"])
+                    logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
             else:
                 logger.error("File is empty: " + radio_name)
         except Exception as e:
