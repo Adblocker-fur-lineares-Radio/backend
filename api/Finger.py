@@ -89,7 +89,7 @@ def fingerprint(q, FingerThreshold):
                     finger = djv.recognize(FileRecognizer, datei)
                     if finger and finger["confidence"] > FingerThreshold:
                         logger.info(datei.split("_")[1] + ": " + str(finger))
-                        csv_logging_write([datei.split("_")[1], "Nachrichten"], "adtime.csv")
+                        csv_logging_write([datei.split("_")[1], "Werbung"], "adtime.csv")
                         q.task_done()
                         os.remove(datei)
                     else:
