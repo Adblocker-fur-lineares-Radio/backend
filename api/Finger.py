@@ -43,7 +43,17 @@ class FilenameInfo:
         self.type = str(splitted[2])
 
 
-def record(radio_stream_url, radio_name, offset_count, duration, q):
+def read_for(response, seconds):
+    chunk = b""
+    start = time()
+    while time() - start < seconds:
+        audio = response.read(1024)
+        if audio:
+            chunk += audio
+    return chunk
+
+
+def record(radio_stream_url, radio_name, offset, duration, queue):
     while True:
         try:
             ThreadStart = time()
@@ -51,36 +61,34 @@ def record(radio_stream_url, radio_name, offset_count, duration, q):
             req = Request(radio_stream_url, headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(req, timeout=10.0)
 
-            offset = duration/offset_count
+            piece = NamedTemporaryFile(delete=False)
 
-            records = [None for _ in range(offset_count)]
-            index = 0
+            # init file with 'offset' seconds
+            audio = read_for(response, offset)
+            piece.write(audio)
 
             while True:
-                # cycle through
-                if records[index] is not None:
-                    records[index].close()
-                    q.put((radio_name, records[index].name))
-                records[index] = NamedTemporaryFile(delete=False)
-                index = (index + 1) % len(records)
-
                 # restart after giving time (so we won't get kicked out)
                 if time() - ThreadStart >= STREAM_AUTO_RESTART:
                     response.close()
                     break
 
-                # take audio for offset time
-                chunk = b""
-                start = time()
-                while time() - start < offset:
-                    audio = response.read(1024)
-                    if not audio:
-                        continue
-                    chunk += audio
+                # fill file with rest except overlapping audio
+                # (has already 'offset' seconds and next overlapping would be 'offset' => 2 * offset)
+                audio = read_for(response, duration - 2 * offset)
+                piece.write(audio)
 
-                for r in records:
-                    if r is not None:
-                        r.write(chunk)
+                # now read overlapping that will be put into both files
+                overlapping = read_for(response, offset)
+                piece.write(audio)
+
+                # file is ready
+                piece.close()
+                queue.put((radio_name, piece.name))
+
+                # create next file
+                piece = NamedTemporaryFile(delete=False)
+                piece.write(overlapping)
 
         except Exception as e:
             logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": " + str(e))
