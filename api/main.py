@@ -6,7 +6,7 @@ from simple_websocket import ConnectionClosed
 
 from api.Finger import start_fingerprint
 from api.db.db_helpers import NewTransaction
-from db.database_functions import insert_init
+from db.database_functions import insert_init, get_radio_by_query
 
 from api.error_handling.error_classes import Error
 from notify_client import start_notifier
@@ -44,7 +44,57 @@ with NewTransaction():
 # default page route specification
 @app.route("/")
 def index():
-    return "<p>Hier wird nur die API unter /api gehostet \\o/</p>"
+    with NewTransaction():
+        radios = get_radio_by_query()
+    radios = [f"""
+        <tr>
+            <td>{radio['name']}</td>
+            <td>{radio['status_label']}</td>
+            <td>{radio['currently_playing']}</td>
+            <td>{radio['current_interpret']}</td>
+        </tr>
+    """ for radio in radios]
+    radios = "\n".join(radios)
+
+    html = f"""
+    <html>
+        <head>
+            <title> Radio Adblocker </title>
+            <meta charset='utf-8' />
+            <meta http-equiv="refresh" content="5; url=." />
+            <style>
+                table {{
+                  font-family: arial, sans-serif;
+                  border-collapse: collapse;
+                  width: 100%;
+                }}
+                
+                td, th {{
+                  border: 1px solid #dddddd;
+                  text-align: left;
+                  padding: 8px;
+                }}
+                
+                tr:nth-child(even) {{
+                  background-color: #dddddd;
+                }}
+                </style>
+        </head>
+        <body>
+            <p>Die API findet man unter /api</p>
+            <table>
+                <tr>
+                    <th>Radio</th>
+                    <th>Status</th>
+                    <th>Songname</th>
+                    <th>Interpret</th>
+                </tr>
+                {radios}
+            </table>
+        </body>
+    </html>
+    """
+    return html
 
 
 @sock.route('/api')
