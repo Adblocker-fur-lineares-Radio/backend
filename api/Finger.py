@@ -1,16 +1,17 @@
 import logging
-from dejavu.recognize import FileRecognizer
-from dejavu import Dejavu
-import time
-from urllib.request import urlopen, Request
 import os
+import queue
 import threading
-from datetime import datetime
+import time
+from logging_config import csv_logging_write
+from urllib.request import urlopen, Request
+
+from dejavu import Dejavu
+from dejavu.recognize import FileRecognizer
+from dotenv import load_dotenv
+
 from api.db.database_functions import get_all_radios
 from api.db.db_helpers import NewTransaction
-import queue
-
-from dotenv import load_dotenv
 
 load_dotenv()
 FINGERPRINT_MYSQL_HOST = os.getenv('FINGERPRINT_MYSQL_HOST')
@@ -88,6 +89,7 @@ def fingerprint(q, FingerThreshold):
                     finger = djv.recognize(FileRecognizer, datei)
                     if finger and finger["confidence"] > FingerThreshold:
                         logger.info(datei.split("_")[1] + ": " + str(finger))
+                        csv_logging_write([datei.split("_")[1], "Nachrichten"], "adtime.csv")
                         q.task_done()
                         os.remove(datei)
                     else:

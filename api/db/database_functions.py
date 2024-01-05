@@ -137,6 +137,7 @@ def get_connections_id_by_radio(radio_id):
     stmt = (select(ConnectionPreferredRadios.connection_id).where(ConnectionPreferredRadios.radio_id == radio_id))
     return session.all(stmt)
 
+
 def get_connections_id_by_current_radio(radio_id):
     """
     Queries DB for a connection where the current radio equals the parameter radio_id and the state is allowed
@@ -537,6 +538,25 @@ def set_radio_status_to_music(radio_id):
     session = current_session.get()
     stmt = update(Radios).where(Radios.id == radio_id).values(status_id=STATUS['music'])
     session.execute(stmt)
+
+
+'''
+def get_radio_status(radio_name):
+    session = current_session.get()
+    stmt = select(Radios.status_id).where(Radios.name == radio_name)
+    result = session.execute(stmt)
+    return result
+
+
+def get_ad_start_or_end(radio_name):
+    status = get_radio_status(radio_name)
+    if status == 1:
+        return "end"
+    elif status == 2:
+        return "start"
+    else:
+        return "-"
+'''
 
 
 def insert_init():
