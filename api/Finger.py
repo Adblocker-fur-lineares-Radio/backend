@@ -115,14 +115,14 @@ def start_fingerprint(connections):
             os.remove(os.path.join(os.getcwd(), item))
 
     q = queue.Queue()
-    a = threading.Thread(target=fingerprint, args=(q, 10))
-    b = threading.Thread(target=fingerprint, args=(q, 10))
-    c = threading.Thread(target=fingerprint, args=(q, 10))
-    d = threading.Thread(target=fingerprint, args=(q, 10))
+    a = threading.Thread(target=fingerprint, args=(q, 20))
+    b = threading.Thread(target=fingerprint, args=(q, 20))
+    c = threading.Thread(target=fingerprint, args=(q, 20))
+    d = threading.Thread(target=fingerprint, args=(q, 20))
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 0.5, 5, q)) for radio in
+        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 1, 5, q)) for radio in
                    radios]
 
     threads.insert(0, a)
