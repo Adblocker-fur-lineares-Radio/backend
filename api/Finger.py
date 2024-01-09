@@ -57,7 +57,7 @@ def start_skip_time(radio_name):
 def needs_skipping(radio_name):
     with skip_mutex:
         if radio_name in skip_timers:
-            return skip_timers[radio_name] - time() <= SKIP_TIME
+            return time() - skip_timers[radio_name] <= SKIP_TIME
     return False
 
 
