@@ -97,6 +97,50 @@ def index():
     return html
 
 
+@app.route("/logs/adtimes/")
+def logs_adtimes():
+    with open("/logs/adtime.csv") as f:
+        csv = f.read()
+    rows = csv.split('\n')
+    out = rows[-100:]
+    out.reverse()
+    nl = "\n"
+    return f"""
+    <html>
+        <head>
+            <title> Radio Adblocker </title>
+            <meta charset='utf-8' />
+            <meta http-equiv="refresh" content="5; url=/logs/adtimes" />
+        </head>
+        <body>
+            <pre>{rows[0]}{nl.join(out)}</pre>
+        </body>
+    </html>
+    """
+
+
+@app.route("/logs/backend/")
+def logs_backend():
+    with open("/logs/backend.log") as f:
+        text = f.read()
+    rows = text.split('\n')
+    out = rows[-100:]
+    out.reverse()
+    nl = "\n"
+    return f"""
+    <html>
+        <head>
+            <title> Radio Adblocker </title>
+            <meta charset='utf-8' />
+            <meta http-equiv="refresh" content="5; url=/logs/backend" />
+        </head>
+        <body>
+            <pre>{nl.join(out)}</pre>
+        </body>
+    </html>
+    """
+
+
 @sock.route('/api')
 def api(client):
     mapping = {
