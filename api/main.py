@@ -33,6 +33,8 @@ logger = logging.getLogger("main.py")
 
 app = Flask(__name__)
 sock = Sock(app)
+log = logging.getLogger('werkzeug')
+log.disabled = True
 
 connections = {}
 
