@@ -44,6 +44,23 @@ class FilenameInfo:
         self.type = splitted[2]
 
 
+skip_timers = {}
+SKIP_TIME = 5  # 5 seconds
+skip_mutex = threading.Lock()
+
+
+def start_skip_time(radio_name):
+    with skip_mutex:
+        skip_timers[radio_name] = time()
+
+
+def needs_skipping(radio_name):
+    with skip_mutex:
+        if radio_name in skip_timers:
+            return skip_timers[radio_name] - time() <= SKIP_TIME
+    return False
+
+
 def read_for(response, seconds):
     chunk = b""
     start = time()
@@ -86,7 +103,8 @@ def record(radio_stream_url, radio_name, offset, duration, queue):
                 # file is ready
                 piece.flush()
                 piece.close()
-                queue.put((radio_name, piece.name))
+                if not needs_skipping(radio_name):
+                    queue.put((radio_name, piece.name))
 
                 # create next file
                 piece = NamedTemporaryFile(delete=False)
@@ -108,6 +126,7 @@ def fingerprint(q, FingerThreshold):
                     info = FilenameInfo(finger["song_name"])
                     logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
                     csv_logging_write([radio_name, "Werbung"], "adtime.csv")
+                    start_skip_time(radio_name)
             else:
                 logger.error("File is empty: " + radio_name)
         except Exception as e:
