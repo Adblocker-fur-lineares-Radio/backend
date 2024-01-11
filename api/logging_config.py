@@ -1,8 +1,9 @@
 import logging
 import os
 import csv
-from datetime import datetime
 import threading
+from pytz import timezone
+from datetime import datetime
 
 file_lock = threading.Lock()
 
@@ -17,8 +18,9 @@ def configure_logging():
     logs_directory = os.path.abspath(os.path.join(os.getcwd(), 'logs'))
     os.makedirs(logs_directory, exist_ok=True)
     log_file_path = '/logs/backend.log'
+    logging.Formatter.converter = lambda *args: datetime.now(tz=timezone('Europe/Berlin')).timetuple()
     logging.basicConfig(format='%(levelname)s %(asctime)s %(name)s %(message)s',
-                        datefmt='%m/%d/%Y %I:%M:%S %p',
+                        datefmt='%m/%d/%Y %H:%M:%S',
                         encoding='utf-8',
                         level=logging.INFO,
                         handlers=[
@@ -39,7 +41,7 @@ def calculate_time_difference_seconds(datetime_str1, datetime_str2):
     @param datetime_str2: string 2 to compare
     @return: the time difference in seconds or None
     """
-    format_str = '%m/%d/%Y %I:%M:%S %p'
+    format_str = '%m/%d/%Y %H:%M:%S'
     try:
         datetime1 = datetime.strptime(datetime_str1, format_str)
         datetime2 = datetime.strptime(datetime_str2, format_str)
@@ -197,8 +199,8 @@ def csv_logging_write(data, pathname):
 
     rowdata = data
 
-    currenttime = datetime.now()
-    formattedtime = currenttime.strftime("%m/%d/%Y %I:%M:%S %p")
+    currenttime = datetime.now(tz=timezone('Europe/Berlin'))
+    formattedtime = currenttime.strftime("%m/%d/%Y %H:%M:%S")
 
     rowdata.insert(0, formattedtime)
 

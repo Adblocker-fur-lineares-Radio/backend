@@ -9,11 +9,10 @@ from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 from logging_config import csv_logging_write
 from dotenv import load_dotenv
-
 from api.db.database_functions import get_all_radios
 from api.db.db_helpers import NewTransaction
 
-from dotenv import load_dotenv
+
 
 load_dotenv()
 FINGERPRINT_MYSQL_HOST = os.getenv('FINGERPRINT_MYSQL_HOST')
