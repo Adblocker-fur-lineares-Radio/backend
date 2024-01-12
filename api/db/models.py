@@ -28,6 +28,7 @@ class Radios(Base):
     logo_url: Mapped[str] = mapped_column(Text)
     station_id: Mapped[str] = mapped_column(Text)
     ad_duration: Mapped[int] = mapped_column(Integer)
+    ad_until: Mapped[Optional[int]] = mapped_column(Integer)
 
 
 @dataclass

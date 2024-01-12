@@ -8,7 +8,8 @@
         "stream_url": "https://wdr-1live-live.icecastssl.wdr.de/wdr/1live/live/mp3/128/stream.mp3?aggregator=radio-de",
         "logo_url": "https://www.radio.de/images/broadcasts/4e/0d/1382/4/c100.png",
         "station_id": "1live",
-        "ad_duration": 0
+        "ad_duration": 0,
+        "ad_until": null
     },
     {
         "id": 2,
@@ -19,7 +20,8 @@
         "stream_url": "https://wdr-wdr2-rheinland.icecastssl.wdr.de/wdr/wdr2/rheinland/mp3/128/stream.mp3",
         "logo_url": "https://www.radio.de/images/broadcasts/96/67/2279/1/c100.png",
         "station_id": "wdr2",
-        "ad_duration": 3
+        "ad_duration": 3,
+        "ad_until": null
     },
     {
         "id": 3,
@@ -30,7 +32,8 @@
         "stream_url": "https://stream.dashitradio.de/dashitradio/mp3-128/?ref=radiode",
         "logo_url": "https://www.radio.de/images/broadcasts/90/0e/9857/3/c100.png",
         "station_id": "dashitradio",
-        "ad_duration": 3
+        "ad_duration": 3,
+        "ad_until": null
     },
     {
         "id": 4,
@@ -41,7 +44,8 @@
         "stream_url": "https://addrad.io/444z58p",
         "logo_url": "https://www.radio.de/images/broadcasts/9a/a4/1421/1/c100.png",
         "station_id": "antenneac",
-        "ad_duration": 3
+        "ad_duration": 3,
+        "ad_until": null
     },
     {
         "id": 6,
@@ -52,7 +56,8 @@
         "stream_url": "https://dispatcher.rndfnk.com/br/br1/obb/mp3/low?aggregator=radiolisten-de",
         "logo_url": "https://www.radio.de/images/broadcasts/10/90/2245/2/c100.png",
         "station_id": "bayern1main",
-        "ad_duration": 3
+        "ad_duration": 3,
+        "ad_until": null
     },
     {
         "id": 7,
@@ -63,7 +68,8 @@
         "stream_url": "https://icecast.radiobremen.de/rb/bremennext/live/mp3/128/stream.mp3?aggregator=radio-de",
         "logo_url": "https://www.radio.de/images/broadcasts/45/82/7493/4/c300.png",
         "station_id": "bremennext",
-        "ad_duration": 0
+        "ad_duration": 0,
+        "ad_until": null
     },
     {
         "id": 8,
@@ -74,6 +80,7 @@
         "stream_url": "https://addrad.io/4459gxr",
         "logo_url": "https://www.radio.de/images/broadcasts/e0/30/6929/7/c300.png",
         "station_id": "radiorst",
-        "ad_duration": 3
+        "ad_duration": 3,
+        "ad_until": null
     }
 ]

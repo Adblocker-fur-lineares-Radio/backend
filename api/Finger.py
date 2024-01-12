@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import threading
@@ -9,7 +10,9 @@ from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 from logging_config import csv_logging_write
 from dotenv import load_dotenv
-from api.db.database_functions import get_all_radios
+from api.db.database_functions import (get_all_radios, get_radio_by_name, set_radio_status_to_music,
+                                       reset_radio_ad_until, set_radio_ad_until, set_radio_status_to_ad)
+from api.notify_client import notify_client_stream_guidance, notify_client_search_update
 from api.db.db_helpers import NewTransaction
 
 
@@ -44,7 +47,7 @@ class FilenameInfo:
 
 
 skip_timers = {}
-SKIP_TIME = 5  # 5 seconds
+SKIP_TIME = 10  # 10 seconds
 skip_mutex = threading.Lock()
 
 
@@ -114,25 +117,49 @@ def record(radio_stream_url, radio_name, offset, duration, queue):
             sleep(10)
 
 
-def fingerprint(q, FingerThreshold):
+def fingerprint(q, FingerThreshold, connections):
     djv = Dejavu(config)
     while True:
-        radio_name, filename = q.get()
-        try:
-            if os.stat(filename).st_size > 0:
-                finger = djv.recognize(FileRecognizer, filename)
-                if finger and finger["confidence"] > FingerThreshold:
-                    info = FilenameInfo(finger["song_name"])
-                    logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
-                    csv_logging_write([radio_name, "Werbung"], "adtime.csv")
-                    start_skip_time(radio_name)
-            else:
-                logger.error("File is empty: " + radio_name)
-        except Exception as e:
-            logger.error("Fingerprinting Error in " + radio_name + ": " + str(e))
-        finally:
-            q.task_done()
-            os.remove(filename)
+        with NewTransaction():
+            radio_name, filename = q.get()
+            radio = get_radio_by_name(radio_name)
+            try:
+                if radio.ad_until and radio.ad_until == datetime.datetime.now().minute:
+                    logger.info(radio_name + ' artifical end of ad')
+                    set_radio_status_to_music(radio.id)
+                    reset_radio_ad_until(radio.id)
+                    notify_client_stream_guidance(connections, radio.id)
+                    notify_client_search_update(connections)
+
+                elif radio.ad_until is None or radio.ad_duration == 0:
+                    if os.stat(filename).st_size > 0:
+                        finger = djv.recognize(FileRecognizer, filename)
+                        if finger and finger["confidence"] > FingerThreshold:
+                            info = FilenameInfo(finger["song_name"])
+                            logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
+                            csv_logging_write([radio_name, "Werbung"], "adtime.csv")
+                            start_skip_time(radio_name)
+
+                            if radio.status_id == 1:
+                                reset_radio_ad_until(radio.id)
+                                set_radio_status_to_music(radio.id)
+
+                            elif radio.status_id == 2:
+                                set_radio_status_to_ad(radio.id)
+                                if radio.ad_duration > 0:
+                                    set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
+                                else:
+                                    set_radio_ad_until(radio.id, datetime.datetime.now().minute + 6)
+
+                            notify_client_stream_guidance(connections, radio.id)
+                            notify_client_search_update(connections)
+                    else:
+                        logger.error("File is empty: " + radio_name)
+            except Exception as e:
+                logger.error("Fingerprinting Error in " + radio_name + ": " + str(e))
+            finally:
+                q.task_done()
+                os.remove(filename)
 
 
 def start_fingerprint(connections):
@@ -145,10 +172,10 @@ def start_fingerprint(connections):
             os.remove(os.path.join(os.getcwd(), item))
 
     q = queue.Queue()
-    a = threading.Thread(target=fingerprint, args=(q, 20))
-    b = threading.Thread(target=fingerprint, args=(q, 20))
-    c = threading.Thread(target=fingerprint, args=(q, 20))
-    d = threading.Thread(target=fingerprint, args=(q, 20))
+    a = threading.Thread(target=fingerprint, args=(q, 20, connections))
+    b = threading.Thread(target=fingerprint, args=(q, 20, connections))
+    c = threading.Thread(target=fingerprint, args=(q, 20, connections))
+    d = threading.Thread(target=fingerprint, args=(q, 20, connections))
 
     with NewTransaction():
         radios = get_all_radios()

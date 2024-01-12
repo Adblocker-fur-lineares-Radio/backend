@@ -41,6 +41,17 @@ def get_radio_by_connection(connection_id):
     return session.first(stmt)
 
 
+def get_radio_by_name(radio_name):
+    """
+    Gets radio by its name
+    @param radio_name:
+    @return: a joined table of the radios and connections
+    """
+    session = current_session.get()
+    stmt = select(Radios).where(Radios.name == radio_name)
+    return session.first(stmt)
+
+
 def get_all_radios():
     """
     Queries DB for all radios
@@ -537,6 +548,20 @@ def set_radio_status_to_ad(radio_id):
 def set_radio_status_to_music(radio_id):
     session = current_session.get()
     stmt = update(Radios).where(Radios.id == radio_id).values(status_id=STATUS['music'])
+    session.execute(stmt)
+
+
+def set_radio_ad_until(radio_id, minute):
+    if minute >= 60:
+        minute = minute - 60
+    session = current_session.get()
+    stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=minute)
+    session.execute(stmt)
+
+
+def reset_radio_ad_until(radio_id):
+    session = current_session.get()
+    stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=None)
     session.execute(stmt)
 
 

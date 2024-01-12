@@ -113,8 +113,8 @@ def start_notifier(connections):
     @return: the thread
     """
 
-    analysis = Thread(target=analyse_radio_stream, args=(connections,))
+    #analysis = Thread(target=analyse_radio_stream, args=(connections,))
     metadata = Thread(target=metadata_processing, args=(connections,))
-    analysis.start()
+    #analysis.start()
     metadata.start()
     return metadata
