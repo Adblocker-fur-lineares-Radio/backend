@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from os import getenv
 
-from humanfriendly import parse_timespan
+from humanfriendly import parse_timespan, parse_size
 
 load_dotenv()
 
@@ -9,7 +9,7 @@ load_dotenv()
 def get_env(key):
     value = getenv(key)
     if value is None:
-        raise f"You need to specify the environment variable '{key}'"
+        raise Exception(f"You need to specify the environment variable '{key}'")
     return value
 
 
@@ -27,6 +27,9 @@ def env_timespan(key):
     spans = value.strip().split(' ')
     return sum(int(parse_timespan(span)) for span in spans)
 
+def env_size(key):
+    return parse_size(get_env(key))
+
 
 FINGERPRINT_MYSQL_HOST = env_str('FINGERPRINT_MYSQL_HOST')
 FINGERPRINT_MYSQL_USER = env_str('FINGERPRINT_MYSQL_USER')
@@ -42,6 +45,11 @@ STREAM_TIMEOUT = env_timespan('STREAM_TIMEOUT')
 STREAM_AUTO_RESTART = env_timespan('STREAM_AUTO_RESTART')
 
 AD_FALLBACK_TIMEOUT = env_timespan('AD_FALLBACK_TIMEOUT')
-FINGERPRINT_SKIP_TIME_AFTER_DETECTION = env_timespan('FINGERPRINT_SKIP_TIME_AFTER_DETECTION')
+FINGERPRINT_SKIP_TIME_AFTER_AD_START = env_timespan('FINGERPRINT_SKIP_TIME_AFTER_AD_START')
+FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END = env_timespan('FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END')
+
+FINGERPRINT_PIECE_MIN_SIZE = env_size('FINGERPRINT_PIECE_MIN_SIZE')
+
+CLIENT_BUFFER = env_timespan('CLIENT_BUFFER')
 
 

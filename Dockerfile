@@ -21,7 +21,7 @@ RUN apk add mariadb-dev
 
 RUN /usr/local/bin/python -m pip install --upgrade pip
 
-COPY requirements/requirements.txt requirements.txt
+COPY requirements.txt requirements.txt
 RUN pip install mysqlclient
 RUN pip install -r requirements.txt
 

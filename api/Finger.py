@@ -10,8 +10,9 @@ from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 
 from api.configs import FINGERPRINT_MYSQL_HOST, FINGERPRINT_MYSQL_USER, FINGERPRINT_MYSQL_PASSWORD, \
-    FINGERPRINT_MYSQL_DB, FINGERPRINT_SKIP_TIME_AFTER_DETECTION, STREAM_AUTO_RESTART, AD_FALLBACK_TIMEOUT, \
-    CONFIDENCE_THRESHOLD, FINGERPRINT_WORKER_THREAD_COUNT, PIECE_OVERLAP, PIECE_DURATION, STREAM_TIMEOUT
+    FINGERPRINT_MYSQL_DB, FINGERPRINT_SKIP_TIME_AFTER_AD_START, STREAM_AUTO_RESTART, AD_FALLBACK_TIMEOUT, \
+    CONFIDENCE_THRESHOLD, FINGERPRINT_WORKER_THREAD_COUNT, PIECE_OVERLAP, PIECE_DURATION, STREAM_TIMEOUT, \
+    FINGERPRINT_PIECE_MIN_SIZE, FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END
 from logging_config import csv_logging_write
 from api.db.database_functions import (get_all_radios, get_radio_by_name, set_radio_status_to_music,
                                        reset_radio_ad_until, set_radio_ad_until, set_radio_status_to_ad)
@@ -45,15 +46,15 @@ class FilenameInfo:
             raise f"Fingerprinted filename {filename} has an incorrect format"
 
 
-def start_skip_time(radio_name):
+def start_skip_time(radio_name, duration):
     with skip_mutex:
-        skip_timers[radio_name] = time()
+        skip_timers[radio_name] = time() + duration
 
 
 def needs_skipping(radio_name):
     with skip_mutex:
         if radio_name in skip_timers:
-            return time() - skip_timers[radio_name] <= FINGERPRINT_SKIP_TIME_AFTER_DETECTION
+            return skip_timers[radio_name] > time()
     return False
 
 
@@ -96,8 +97,9 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
 
                 # check if stream still works and write the temporary file
                 pieceData = audio + overlapping
-                if len(pieceData) == 0:
-                    raise "Couldn't receive any data (len = 0)"
+                if len(pieceData) < FINGERPRINT_PIECE_MIN_SIZE:
+                    response.close()
+                    raise Exception(f"Couldn't receive any data (len = {len(pieceData)} < {FINGERPRINT_PIECE_MIN_SIZE})")
                 piece.write(pieceData)
 
                 # file is ready
@@ -127,6 +129,7 @@ def fingerprint(job_queue, confidence_threshold, connections):
                     reset_radio_ad_until(radio.id)
                     notify_client_stream_guidance(connections, radio.id)
                     notify_client_search_update(connections)
+                    start_skip_time(radio_name, FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END)
                     logger.info(radio_name + ' artifical end of ad')
                     csv_logging_write([radio_name, "end_of_ad_artificial"], "adtime.csv")
 
@@ -134,7 +137,7 @@ def fingerprint(job_queue, confidence_threshold, connections):
                     finger = djv.recognize(FileRecognizer, filename)
                     if finger and finger["confidence"] > confidence_threshold:
                         info = FilenameInfo(finger["song_name"])
-                        start_skip_time(radio_name)
+                        start_skip_time(radio_name, FINGERPRINT_SKIP_TIME_AFTER_AD_START)
 
                         if radio.status_id == STATUS['ad']:
                             reset_radio_ad_until(radio.id)
@@ -154,7 +157,7 @@ def fingerprint(job_queue, confidence_threshold, connections):
 
                         logger.info(radio_name + ": " + str(finger) +
                                     f"\n{radio_name}: " +
-                                    str(f"{info.radio_name} - {info.status} - {info.type}") +
+                                    f"{info.radio_name} - {info.status} - {info.type}" +
                                     f", confidence = {finger['confidence']}")
             except Exception as e:
                 logger.error(f"Fingerprinting Error in {radio_name}: {e}")

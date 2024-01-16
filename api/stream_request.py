@@ -1,5 +1,6 @@
 import json
 
+from api.configs import CLIENT_BUFFER
 from api.db.database_functions import switch_to_working_radio, get_radio_by_id, \
     update_preferences_for_connection
 from api.db.db_helpers import NewTransaction, serialize
@@ -57,7 +58,7 @@ def radio_stream_event(connection_id):
     return json.dumps({
         'type': 'radio_stream_event',
         'switch_to': serialize(radio),
-        'buffer': 0
+        'buffer': CLIENT_BUFFER
     })
 
 
