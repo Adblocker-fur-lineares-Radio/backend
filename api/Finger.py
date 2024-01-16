@@ -1,5 +1,6 @@
 import datetime
 import logging
+import multiprocessing
 import os
 import threading
 import queue
@@ -76,6 +77,8 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
             req = Request(radio_stream_url, headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(req, timeout=STREAM_TIMEOUT)
 
+            logger.info(f"Started recording chunks of {radio_name}")
+
             piece = NamedTemporaryFile(delete=False)
 
             # init file with 'offset' seconds
@@ -106,7 +109,9 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
                 piece.flush()
                 piece.close()
                 if not needs_skipping(radio_name):
-                    job_queue.put((radio_name, piece.name))
+                    with NewTransaction():
+                        radio = get_radio_by_name(radio_name)
+                        job_queue.put((radio, piece.name))
 
                 # create next file
                 piece = NamedTemporaryFile(delete=False)
@@ -117,70 +122,95 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
             sleep(10)
 
 
-def fingerprint(job_queue, confidence_threshold, connections):
-    djv = Dejavu(config)
+def action_handler(action_queue, connections):
     while True:
-        with NewTransaction():
-            radio_name, filename = job_queue.get()
-            radio = get_radio_by_name(radio_name)
-            try:
-                if radio.ad_until and radio.ad_until <= datetime.datetime.now().minute:
+        action, radio = action_queue.get()
+        try:
+            with NewTransaction():
+                if action == "end_of_ad_artificial":
                     set_radio_status_to_music(radio.id)
                     reset_radio_ad_until(radio.id)
                     notify_client_stream_guidance(connections, radio.id)
                     notify_client_search_update(connections)
-                    start_skip_time(radio_name, FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END)
-                    logger.info(radio_name + ' artifical end of ad')
-                    csv_logging_write([radio_name, "end_of_ad_artificial"], "adtime.csv")
+                    start_skip_time(radio.name, FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END)
+                    logger.info(radio.name + ' artifical end of ad')
+                    csv_logging_write([radio.name, "end_of_ad_artificial"], "adtime.csv")
+                elif action == "end_of_ad":
+                    reset_radio_ad_until(radio.id)
+                    set_radio_status_to_music(radio.id)
+                    csv_logging_write([radio.name, "end_of_ad"], "adtime.csv")
+                elif action == "start_of_ad":
+                    start_skip_time(radio.name, FINGERPRINT_SKIP_TIME_AFTER_AD_START)
+                    set_radio_status_to_ad(radio.id)
+                    if radio.ad_duration > 0:
+                        set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
+                    else:
+                        set_radio_ad_until(radio.id, datetime.datetime.now().minute + AD_FALLBACK_TIMEOUT)
+                    csv_logging_write([radio.name, "start_of_ad"], "adtime.csv")
 
-                elif radio.ad_until is None or radio.ad_duration == 0:
-                    finger = djv.recognize(FileRecognizer, filename)
-                    if finger and finger["confidence"] > confidence_threshold:
-                        info = FilenameInfo(finger["song_name"])
-                        start_skip_time(radio_name, FINGERPRINT_SKIP_TIME_AFTER_AD_START)
+                notify_client_stream_guidance(connections, radio.id)
+                notify_client_search_update(connections)
+        except Exception as e:
+            logger.error(f"Fingerprinting Error in {radio.name}: {e}")
+        finally:
+            action_queue.task_done()
 
-                        if radio.status_id == STATUS['ad']:
-                            reset_radio_ad_until(radio.id)
-                            set_radio_status_to_music(radio.id)
-                            csv_logging_write([radio_name, "end_of_ad"], "adtime.csv")
 
-                        elif radio.status_id == STATUS['music']:
-                            set_radio_status_to_ad(radio.id)
-                            if radio.ad_duration > 0:
-                                set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
-                            else:
-                                set_radio_ad_until(radio.id, datetime.datetime.now().minute + AD_FALLBACK_TIMEOUT)
-                            csv_logging_write([radio_name, "start_of_ad"], "adtime.csv")
+def fingerprint(job_queue, action_queue, confidence_threshold, connections):
+    djv = Dejavu(config)
+    while True:
+        radio, filename = job_queue.get()
+        logger.info(f"analysing chunk for radio {radio.name}")
+        try:
+            if radio.ad_until and radio.ad_until <= datetime.datetime.now().minute:
+                action_queue.put(("end_of_ad_artificial", radio))
 
-                        notify_client_stream_guidance(connections, radio.id)
-                        notify_client_search_update(connections)
+            elif radio.ad_until is None or radio.ad_duration == 0:
+                finger = djv.recognize(FileRecognizer, filename)
+                if finger and finger["confidence"] > confidence_threshold:
+                    info = FilenameInfo(finger["song_name"])
 
-                        logger.info(radio_name + ": " + str(finger) +
-                                    f"\n{radio_name}: " +
-                                    f"{info.radio_name} - {info.status} - {info.type}" +
-                                    f", confidence = {finger['confidence']}")
-            except Exception as e:
-                logger.error(f"Fingerprinting Error in {radio_name}: {e}")
-            finally:
-                job_queue.task_done()
-                os.remove(filename)
+                    if radio.status_id == STATUS['ad']:
+                        action_queue.put(("end_of_ad", radio))
+                    elif radio.status_id == STATUS['music']:
+                        action_queue.put(("start_of_ad", radio))
+
+                    logger.info(radio.name + ": " + str(finger) +
+                                f"\n{radio.name}: " +
+                                f"{info.radio_name} - {info.status} - {info.type}" +
+                                f", confidence = {finger['confidence']}")
+
+        except Exception as e:
+            logger.error(f"Fingerprinting Error in {radio.name}: {e}")
+        finally:
+            job_queue.task_done()
+            os.remove(filename)
 
 
 def start_fingerprint(connections):
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
 
-    job_queue = queue.Queue()
+    # job_queue = queue.Queue()
+    job_queue = multiprocessing.Manager().Queue()
+    action_queue = multiprocessing.Manager().Queue()
 
     # add the worker threads
-    threads = [threading.Thread(target=fingerprint, args=(job_queue, CONFIDENCE_THRESHOLD, connections)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
+    # threads = [threading.Thread(target=fingerprint, args=(job_queue, CONFIDENCE_THRESHOLD, connections)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
+    workers = [multiprocessing.Process(target=fingerprint, args=(job_queue, action_queue, CONFIDENCE_THRESHOLD, connections)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
 
     with NewTransaction():
         radios = get_all_radios()
-        threads.extend([threading.Thread(target=record, args=(radio.stream_url, radio.name, PIECE_OVERLAP, PIECE_DURATION, job_queue))
-                        for radio in radios])
+        recorders = [threading.Thread(target=record, args=(radio.stream_url, radio.name, PIECE_OVERLAP, PIECE_DURATION, job_queue))
+                     for radio in radios]
 
-    for fingerprint_thread in threads:
-        fingerprint_thread.start()
+    for recorder in recorders:
+        recorder.start()
 
-    return threads
+    for worker in workers:
+        worker.start()
+
+    action_thread = threading.Thread(target=action_handler, args=(action_queue, connections))
+    action_thread.start()
+
+    return [*recorders, *workers, action_thread]

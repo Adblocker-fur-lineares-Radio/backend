@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 
 from sqlalchemy import *
-from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session, serialize_row
+from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session, serialize_row, get_current_session
 from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     RadioAdTime, RadioMetadata, RadioStates
 from api.logging_config import configure_logging, csv_logging_write
@@ -22,7 +22,7 @@ def get_radio_by_id(radio_id):
     :return: the Query result as a row
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = (stmt_select_radio_with_state()
             .where(Radios.id == radio_id))
     return transform_radio_with_state(session.first(stmt))
@@ -34,7 +34,7 @@ def get_radio_by_connection(connection_id):
     @param connection_id: 
     @return: a joined table of the radios and connections
     """
-    session = current_session.get()
+    session = get_current_session()
     stmt = (select(Radios, Connections)
             .join(ConnectionPreferredRadios, Radios.id == ConnectionPreferredRadios.radio_id)
             .join(Connections, ConnectionPreferredRadios.connection_id == connection_id))
@@ -47,7 +47,7 @@ def get_radio_by_name(radio_name):
     @param radio_name:
     @return: a joined table of the radios and connections
     """
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(Radios).where(Radios.name == radio_name)
     return session.first(stmt)
 
@@ -58,7 +58,7 @@ def get_all_radios():
     @return: list of rows with radio entries (empty list if none found)
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(Radios)
     return session.all(stmt)
 
@@ -70,7 +70,7 @@ def radios_existing(radio_ids):
     @return: true if every id exists
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(func.count()).select_from(Radios).where(Radios.id.in_(radio_ids))
     count = session.scalar(stmt)
     return count == len(radio_ids)
@@ -97,7 +97,7 @@ def get_radio_by_query(search_query=None, search_without_ads=None, ids=None):
     @return: list of rows with radio entries (empty list if none found)
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = stmt_select_radio_with_state()
 
@@ -120,7 +120,7 @@ def get_connections_by_remaining_updates():
     @return: the connections as an untupled list of rows
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = (select(Connections).where(Connections.search_remaining_update > 0))
     return session.all(stmt)
 
@@ -132,7 +132,7 @@ def get_preferred_radios(connection_id):
     :return: list of all preferred radios
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(ConnectionPreferredRadios).where(ConnectionPreferredRadios.connection_id == connection_id)
     return session.all(stmt)
 
@@ -144,7 +144,7 @@ def get_connections_id_by_radio(radio_id):
     @return: the connection as a list of rows
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = (select(ConnectionPreferredRadios.connection_id).where(ConnectionPreferredRadios.radio_id == radio_id))
     return session.all(stmt)
 
@@ -156,7 +156,7 @@ def get_connections_id_by_current_radio(radio_id):
     @return: the connection as a list of rows
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = (select(Connections.id).where(Connections.current_radio_id == radio_id))
     return session.all(stmt)
 
@@ -168,7 +168,7 @@ def switch_to_working_radio(connection_id):
     @return: the radio_id of the new radio, or None
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     connection = get_connection(connection_id)
     allowed_states = helper_get_allowed_states(connection)
@@ -213,7 +213,7 @@ def get_connection_favorites(connection_id):
     :return: list of all search favorites
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(ConnectionSearchFavorites).where(ConnectionSearchFavorites.connection_id == connection_id)
     return session.all(stmt)
 
@@ -225,7 +225,7 @@ def get_connection(connection_id):
     :return: list of all connection attributes
     """
 
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(Connections).where(Connections.id == connection_id)
     return session.first(stmt)
 
@@ -247,7 +247,7 @@ def insert_new_connection(search_query=None, current_radio_id=None, search_witho
     :return: the inserted id
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = (insert(Connections).values(
         search_query=search_query,
@@ -271,7 +271,7 @@ def insert_into_connection_preferred_radios(radio_ids, connection_id):
     @return: -
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     session.execute(insert(ConnectionPreferredRadios),
                     [{"radio_id": radio_id, "connection_id": connection_id} for radio_id in radio_ids])
@@ -286,7 +286,7 @@ def insert_into_connection_search_favorites(radio_ids, connection_id):
     @return: -
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     # TODO turn into one single statement
     session.execute(insert(ConnectionSearchFavorites),
@@ -302,7 +302,7 @@ def delete_connection_from_db(connection_id):
 
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = delete(Connections).where(Connections.id == connection_id)
     session.execute(stmt)
@@ -314,7 +314,7 @@ def delete_all_connections_from_db():
     @return: -
     """
 
-    session = current_session.get()
+    session = get_current_session()
     session.execute(text("""TRUNCATE TABLE connections CASCADE"""))
 
 
@@ -326,7 +326,7 @@ def update_search_remaining_updates(connection_id, value=None):
     @return: the amount of remaining updates or 0
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = update(Connections).where(Connections.id == connection_id)
     if value:
@@ -353,7 +353,7 @@ def update_search_request_for_connection(connection_id, search_query=None, witho
     @return: -
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
@@ -386,7 +386,7 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     @return: -
     """
 
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = (update(Connections)
             .where(Connections.id == connection_id)
@@ -426,7 +426,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     @return: the list of rows of radios
     #"""
 
-    session = current_session.get()
+    session = get_current_session()
 
     now = func.current_timestamp()
     # if inDerZeitVonWerbung xor status == 'werbung'
@@ -495,7 +495,7 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
 
 
 def get_radios_and_update_by_currently_playing(data):
-    session = current_session.get()
+    session = get_current_session()
 
     radios = []
     for item in data:
@@ -540,13 +540,13 @@ def get_radios_and_update_by_currently_playing(data):
 
 
 def set_radio_status_to_ad(radio_id):
-    session = current_session.get()
+    session = get_current_session()
     stmt = update(Radios).where(Radios.id == radio_id).values(status_id=STATUS['ad'])
     session.execute(stmt)
 
 
 def set_radio_status_to_music(radio_id):
-    session = current_session.get()
+    session = get_current_session()
     stmt = update(Radios).where(Radios.id == radio_id).values(status_id=STATUS['music'])
     session.execute(stmt)
 
@@ -554,20 +554,20 @@ def set_radio_status_to_music(radio_id):
 def set_radio_ad_until(radio_id, minute):
     if minute >= 60:
         minute = minute - 60
-    session = current_session.get()
+    session = get_current_session()
     stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=minute)
     session.execute(stmt)
 
 
 def reset_radio_ad_until(radio_id):
-    session = current_session.get()
+    session = get_current_session()
     stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=None)
     session.execute(stmt)
 
 
 '''
 def get_radio_status(radio_name):
-    session = current_session.get()
+    session = get_current_session()
     stmt = select(Radios.status_id).where(Radios.name == radio_name)
     result = session.execute(stmt)
     return result
@@ -585,7 +585,7 @@ def get_ad_start_or_end(radio_name):
 
 
 def insert_init():
-    session = current_session.get()
+    session = get_current_session()
 
     stmt = select(func.count()).select_from(RadioStates)
     cnt = session.scalar(stmt)

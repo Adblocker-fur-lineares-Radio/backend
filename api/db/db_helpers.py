@@ -46,6 +46,13 @@ def helper_get_allowed_states(connection):
 current_session = contextvars.ContextVar("current_session", default=None)
 
 
+def get_current_session():
+    session = current_session.get()
+    if session is None:
+        raise Exception("Please initialize a session `with NewTransaction(): ...")
+    return session
+
+
 class NewTransaction:
     """
     usage:
