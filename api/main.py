@@ -63,7 +63,6 @@ def index():
         <head>
             <title> Radio Adblocker </title>
             <meta charset='utf-8' />
-            <meta http-equiv="refresh" content="5; url=." />
             <style>
                 table {{
                   font-family: arial, sans-serif;
@@ -93,6 +92,7 @@ def index():
                 </tr>
                 {radios}
             </table>
+            <a href="/">Aktualisieren</a><br />
         </body>
     </html>
     """
@@ -112,9 +112,9 @@ def logs_adtimes():
         <head>
             <title> Radio Adblocker </title>
             <meta charset='utf-8' />
-            <meta http-equiv="refresh" content="5; url=/logs/adtimes" />
         </head>
         <body>
+            <a href="/logs/adtimes">Aktualisieren</a><br />
             <pre>{rows[0]}{nl.join(out)}</pre>
         </body>
     </html>
@@ -134,9 +134,9 @@ def logs_backend():
         <head>
             <title> Radio Adblocker </title>
             <meta charset='utf-8' />
-            <meta http-equiv="refresh" content="5; url=/logs/backend" />
         </head>
         <body>
+            <a href="/logs/backend">Aktualisieren</a><br />
             <pre>{nl.join(out)}</pre>
         </body>
     </html>

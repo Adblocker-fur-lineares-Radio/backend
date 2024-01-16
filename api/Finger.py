@@ -8,20 +8,15 @@ from tempfile import NamedTemporaryFile
 from urllib.request import urlopen, Request
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
+
+from api.configs import FINGERPRINT_MYSQL_HOST, FINGERPRINT_MYSQL_USER, FINGERPRINT_MYSQL_PASSWORD, \
+    FINGERPRINT_MYSQL_DB, FINGERPRINT_SKIP_TIME_AFTER_DETECTION, STREAM_AUTO_RESTART, AD_FALLBACK_TIMEOUT, \
+    CONFIDENCE_THRESHOLD, FINGERPRINT_WORKER_THREAD_COUNT, PIECE_OVERLAP, PIECE_DURATION, STREAM_TIMEOUT
 from logging_config import csv_logging_write
-from dotenv import load_dotenv
 from api.db.database_functions import (get_all_radios, get_radio_by_name, set_radio_status_to_music,
                                        reset_radio_ad_until, set_radio_ad_until, set_radio_status_to_ad)
 from api.notify_client import notify_client_stream_guidance, notify_client_search_update
-from api.db.db_helpers import NewTransaction
-
-
-
-load_dotenv()
-FINGERPRINT_MYSQL_HOST = os.getenv('FINGERPRINT_MYSQL_HOST')
-FINGERPRINT_MYSQL_USER = os.getenv('FINGERPRINT_MYSQL_USER')
-FINGERPRINT_MYSQL_PASSWORD = os.getenv('FINGERPRINT_MYSQL_PASSWORD')
-FINGERPRINT_MYSQL_DB = os.getenv('FINGERPRINT_MYSQL_DB')
+from api.db.db_helpers import NewTransaction, STATUS
 
 logger = logging.getLogger("Finger.py")
 
@@ -34,21 +29,20 @@ config = {
     },
 }
 
-STREAM_AUTO_RESTART = 6 * 60 * 60 - 10 * 60  # 6h - 10min
+skip_timers = {}
+skip_mutex = threading.Lock()
+
 
 class FilenameInfo:
     def __init__(self, filename):
-        filename = str(filename)
-        self.filename = filename
-        splitted = filename.split('_')
-        self.radio_name = splitted[0]
-        self.status = splitted[1]
-        self.type = splitted[2]
-
-
-skip_timers = {}
-SKIP_TIME = 10  # 10 seconds
-skip_mutex = threading.Lock()
+        try:
+            self.filename = filename.decode("utf-8")
+            parts = self.filename.split('_')
+            self.radio_name = parts[0]
+            self.status = parts[1]
+            self.type = parts[2]
+        except Exception as e:
+            raise f"Fingerprinted filename {filename} has an incorrect format"
 
 
 def start_skip_time(radio_name):
@@ -59,7 +53,7 @@ def start_skip_time(radio_name):
 def needs_skipping(radio_name):
     with skip_mutex:
         if radio_name in skip_timers:
-            return time() - skip_timers[radio_name] <= SKIP_TIME
+            return time() - skip_timers[radio_name] <= FINGERPRINT_SKIP_TIME_AFTER_DETECTION
     return False
 
 
@@ -73,13 +67,13 @@ def read_for(response, seconds):
     return chunk
 
 
-def record(radio_stream_url, radio_name, offset, duration, queue):
+def record(radio_stream_url, radio_name, offset, duration, job_queue):
     while True:
         try:
             ThreadStart = time()
 
             req = Request(radio_stream_url, headers={'User-Agent': 'Mozilla/5.0'})
-            response = urlopen(req, timeout=10.0)
+            response = urlopen(req, timeout=STREAM_TIMEOUT)
 
             piece = NamedTemporaryFile(delete=False)
 
@@ -96,69 +90,76 @@ def record(radio_stream_url, radio_name, offset, duration, queue):
                 # fill file with rest except overlapping audio
                 # (has already 'offset' seconds and next overlapping would be 'offset' => 2 * offset)
                 audio = read_for(response, duration - 2 * offset)
-                piece.write(audio)
 
                 # now read overlapping that will be put into both files
                 overlapping = read_for(response, offset)
-                piece.write(overlapping)
+
+                # check if stream still works and write the temporary file
+                pieceData = audio + overlapping
+                if len(pieceData) == 0:
+                    raise "Couldn't receive any data (len = 0)"
+                piece.write(pieceData)
 
                 # file is ready
                 piece.flush()
                 piece.close()
                 if not needs_skipping(radio_name):
-                    queue.put((radio_name, piece.name))
+                    job_queue.put((radio_name, piece.name))
 
                 # create next file
                 piece = NamedTemporaryFile(delete=False)
                 piece.write(overlapping)
 
         except Exception as e:
-            logger.error("Fingerprint Thread crashed: " + str(radio_name) + ": " + str(e))
+            logger.error(f"Record stream of {radio_name} crashed: {e}")
             sleep(10)
 
 
-def fingerprint(q, FingerThreshold, connections):
+def fingerprint(job_queue, confidence_threshold, connections):
     djv = Dejavu(config)
     while True:
         with NewTransaction():
-            radio_name, filename = q.get()
+            radio_name, filename = job_queue.get()
             radio = get_radio_by_name(radio_name)
             try:
-                if radio.ad_until and radio.ad_until == datetime.datetime.now().minute:
-                    logger.info(radio_name + ' artifical end of ad')
+                if radio.ad_until and radio.ad_until <= datetime.datetime.now().minute:
                     set_radio_status_to_music(radio.id)
                     reset_radio_ad_until(radio.id)
                     notify_client_stream_guidance(connections, radio.id)
                     notify_client_search_update(connections)
+                    logger.info(radio_name + ' artifical end of ad')
+                    csv_logging_write([radio_name, "end_of_ad_artificial"], "adtime.csv")
 
                 elif radio.ad_until is None or radio.ad_duration == 0:
-                    if os.stat(filename).st_size > 0:
-                        finger = djv.recognize(FileRecognizer, filename)
-                        if finger and finger["confidence"] > FingerThreshold:
-                            info = FilenameInfo(finger["song_name"])
-                            logger.info(radio_name + ": " + str(finger) + f"\n{radio_name}: {info.radio_name} - {info.status} - {info.type}, confidence = {finger['confidence']}")
-                            csv_logging_write([radio_name, "Werbung"], "adtime.csv")
-                            start_skip_time(radio_name)
+                    finger = djv.recognize(FileRecognizer, filename)
+                    if finger and finger["confidence"] > confidence_threshold:
+                        info = FilenameInfo(finger["song_name"])
+                        start_skip_time(radio_name)
 
-                            if radio.status_id == 1:
-                                reset_radio_ad_until(radio.id)
-                                set_radio_status_to_music(radio.id)
+                        if radio.status_id == STATUS['ad']:
+                            reset_radio_ad_until(radio.id)
+                            set_radio_status_to_music(radio.id)
+                            csv_logging_write([radio_name, "end_of_ad"], "adtime.csv")
 
-                            elif radio.status_id == 2:
-                                set_radio_status_to_ad(radio.id)
-                                if radio.ad_duration > 0:
-                                    set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
-                                else:
-                                    set_radio_ad_until(radio.id, datetime.datetime.now().minute + 6)
+                        elif radio.status_id == STATUS['music']:
+                            set_radio_status_to_ad(radio.id)
+                            if radio.ad_duration > 0:
+                                set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
+                            else:
+                                set_radio_ad_until(radio.id, datetime.datetime.now().minute + AD_FALLBACK_TIMEOUT)
+                            csv_logging_write([radio_name, "start_of_ad"], "adtime.csv")
 
-                            notify_client_stream_guidance(connections, radio.id)
-                            notify_client_search_update(connections)
-                    else:
-                        logger.error("File is empty: " + radio_name)
+                        notify_client_stream_guidance(connections, radio.id)
+                        notify_client_search_update(connections)
+
+                        logger.info(radio_name + ": " + str(finger) +
+                                    f"\n{radio_name}: " +
+                                    str(f"{info.radio_name} - {info.status} - {info.type}") +
+                                    f", confidence = {finger['confidence']}")
             except Exception as e:
-                logger.error("Fingerprinting Error in " + radio_name + ": " + str(e))
+                logger.error(f"Fingerprinting Error in {radio_name}: {e}")
             finally:
-                q.task_done()
+                job_queue.task_done()
                 os.remove(filename)
 
 
@@ -166,26 +167,15 @@ def start_fingerprint(connections):
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
 
-    test = os.listdir(os.getcwd())
-    for item in test:
-        if item.endswith(".wav"):
-            os.remove(os.path.join(os.getcwd(), item))
+    job_queue = queue.Queue()
 
-    q = queue.Queue()
-    a = threading.Thread(target=fingerprint, args=(q, 20, connections))
-    b = threading.Thread(target=fingerprint, args=(q, 20, connections))
-    c = threading.Thread(target=fingerprint, args=(q, 20, connections))
-    d = threading.Thread(target=fingerprint, args=(q, 20, connections))
+    # add the worker threads
+    threads = [threading.Thread(target=fingerprint, args=(job_queue, CONFIDENCE_THRESHOLD, connections)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
 
     with NewTransaction():
         radios = get_all_radios()
-        threads = [threading.Thread(target=record, args=(radio.stream_url, radio.name, 1, 5, q)) for radio in
-                   radios]
-
-    threads.append(a)
-    threads.append(b)
-    threads.append(c)
-    threads.append(d)
+        threads.extend([threading.Thread(target=record, args=(radio.stream_url, radio.name, PIECE_OVERLAP, PIECE_DURATION, job_queue))
+                        for radio in radios])
 
     for fingerprint_thread in threads:
         fingerprint_thread.start()

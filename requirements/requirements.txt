@@ -1,3 +1,4 @@
+humanfriendly
 SQLAlchemy
 psycopg[binary]
 python-dotenv
