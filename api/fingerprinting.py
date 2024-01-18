@@ -156,11 +156,11 @@ def action_handler(action_queue, connections):
             action_queue.task_done()
 
 
-def fingerprint(job_queue, action_queue, confidence_threshold, connections):
+def fingerprint(job_queue, action_queue, confidence_threshold):
     djv = Dejavu(config)
     while True:
         radio, filename = job_queue.get()
-        logger.info(f"analysing chunk for radio {radio.name}")
+        # logger.info(f"analysing chunk for radio {radio.name}")
         try:
             if radio.ad_until and radio.ad_until <= datetime.datetime.now().minute:
                 action_queue.put(("end_of_ad_artificial", radio))
@@ -187,6 +187,13 @@ def fingerprint(job_queue, action_queue, confidence_threshold, connections):
             os.remove(filename)
 
 
+# def check_artificial_end_regularly(interval_seconds, radios, action_queue):
+#     while True:
+#         for radio in radios:
+#             action_queue.put(("check_artificial_end", radio.name))
+#         sleep(interval_seconds)
+
+
 def start_fingerprint(connections):
     djv = Dejavu(config)
     djv.fingerprint_directory("AD_SameLenghtJingles", [".wav"])
@@ -196,8 +203,7 @@ def start_fingerprint(connections):
     action_queue = multiprocessing.Manager().Queue()
 
     # add the worker threads
-    # threads = [threading.Thread(target=fingerprint, args=(job_queue, CONFIDENCE_THRESHOLD, connections)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
-    workers = [multiprocessing.Process(target=fingerprint, args=(job_queue, action_queue, CONFIDENCE_THRESHOLD, connections)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
+    workers = [multiprocessing.Process(target=fingerprint, args=(job_queue, action_queue, CONFIDENCE_THRESHOLD)) for _ in range(FINGERPRINT_WORKER_THREAD_COUNT)]
 
     with NewTransaction():
         radios = get_all_radios()
@@ -213,4 +219,9 @@ def start_fingerprint(connections):
     action_thread = threading.Thread(target=action_handler, args=(action_queue, connections))
     action_thread.start()
 
+    # # check every minute
+    # action_end_check_thread = threading.Thread(target=check_artificial_end_regularly, args=(radios, 60, action_queue))
+    # action_end_check_thread.start()
+
+    # return [*recorders, *workers, action_thread, action_end_check_thread]
     return [*recorders, *workers, action_thread]

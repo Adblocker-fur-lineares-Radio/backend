@@ -4,7 +4,7 @@ import json
 from json import JSONDecodeError
 from simple_websocket import ConnectionClosed
 
-from api.Finger import start_fingerprint
+from api.fingerprinting import start_fingerprint
 from api.db.db_helpers import NewTransaction
 from db.database_functions import insert_init, get_radio_by_query
 
