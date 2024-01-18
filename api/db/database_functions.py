@@ -551,11 +551,10 @@ def set_radio_status_to_music(radio_id):
     session.execute(stmt)
 
 
-def set_radio_ad_until(radio_id, minute):
-    if minute >= 60:
-        minute = minute - 60
+def set_radio_ad_until(radio_id, timestamp):
+    # FIXME timestamp could be evaluated by this function
     session = current_session.get()
-    stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=minute)
+    stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=timestamp)
     session.execute(stmt)
 
 

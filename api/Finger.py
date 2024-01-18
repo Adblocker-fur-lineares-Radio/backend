@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 import threading
@@ -76,6 +76,8 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
             req = Request(radio_stream_url, headers={'User-Agent': 'Mozilla/5.0'})
             response = urlopen(req, timeout=STREAM_TIMEOUT)
 
+            logger.info(f"Started recording chunks of {radio_name}")
+
             piece = NamedTemporaryFile(delete=False)
 
             # init file with 'offset' seconds
@@ -99,7 +101,7 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
                 pieceData = audio + overlapping
                 if len(pieceData) < FINGERPRINT_PIECE_MIN_SIZE:
                     response.close()
-                    raise Exception(f"Couldn't receive any data (len = {len(pieceData)} < {FINGERPRINT_PIECE_MIN_SIZE})")
+                    raise Exception(f"Couldn't receive enough data (len = {len(pieceData)} < {FINGERPRINT_PIECE_MIN_SIZE})")
                 piece.write(pieceData)
 
                 # file is ready
@@ -124,7 +126,7 @@ def fingerprint(job_queue, confidence_threshold, connections):
             radio_name, filename = job_queue.get()
             radio = get_radio_by_name(radio_name)
             try:
-                if radio.ad_until and radio.ad_until <= datetime.datetime.now().minute:
+                if radio.ad_until and radio.ad_until <= datetime.now():
                     set_radio_status_to_music(radio.id)
                     reset_radio_ad_until(radio.id)
                     notify_client_stream_guidance(connections, radio.id)
@@ -147,9 +149,9 @@ def fingerprint(job_queue, confidence_threshold, connections):
                         elif radio.status_id == STATUS['music']:
                             set_radio_status_to_ad(radio.id)
                             if radio.ad_duration > 0:
-                                set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
+                                set_radio_ad_until(radio.id, datetime.now() + timedelta(minutes=radio.ad_duration))
                             else:
-                                set_radio_ad_until(radio.id, datetime.datetime.now().minute + AD_FALLBACK_TIMEOUT)
+                                set_radio_ad_until(radio.id, datetime.now() + timedelta(seconds=AD_FALLBACK_TIMEOUT))
                             csv_logging_write([radio_name, "start_of_ad"], "adtime.csv")
 
                         notify_client_stream_guidance(connections, radio.id)
