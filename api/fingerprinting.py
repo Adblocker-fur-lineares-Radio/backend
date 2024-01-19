@@ -1,9 +1,8 @@
-import datetime
+from datetime import datetime, timedelta
 import logging
 import multiprocessing
 import os
 import threading
-import queue
 from time import time, sleep
 from tempfile import NamedTemporaryFile
 from urllib.request import urlopen, Request
@@ -102,13 +101,14 @@ def record(radio_stream_url, radio_name, offset, duration, job_queue):
                 pieceData = audio + overlapping
                 if len(pieceData) < FINGERPRINT_PIECE_MIN_SIZE:
                     response.close()
-                    raise Exception(f"Couldn't receive any data (len = {len(pieceData)} < {FINGERPRINT_PIECE_MIN_SIZE})")
+                    raise Exception(f"Couldn't receive enough data (len = {len(pieceData)} < {FINGERPRINT_PIECE_MIN_SIZE})")
                 piece.write(pieceData)
 
                 # file is ready
                 piece.flush()
                 piece.close()
                 if not needs_skipping(radio_name):
+                    # FIXME when fingerprinting gets heavily delayed `radio` could be outdated
                     with NewTransaction():
                         radio = get_radio_by_name(radio_name)
                         job_queue.put((radio, piece.name))
@@ -143,9 +143,9 @@ def action_handler(action_queue, connections):
                     start_skip_time(radio.name, FINGERPRINT_SKIP_TIME_AFTER_AD_START)
                     set_radio_status_to_ad(radio.id)
                     if radio.ad_duration > 0:
-                        set_radio_ad_until(radio.id, datetime.datetime.now().minute + radio.ad_duration)
+                        set_radio_ad_until(radio.id, datetime.now() + timedelta(minutes=radio.ad_duration))
                     else:
-                        set_radio_ad_until(radio.id, datetime.datetime.now().minute + AD_FALLBACK_TIMEOUT)
+                        set_radio_ad_until(radio.id, datetime.now() + timedelta(seconds=AD_FALLBACK_TIMEOUT))
                     csv_logging_write([radio.name, "start_of_ad"], "adtime.csv")
 
                 notify_client_stream_guidance(connections, radio.id)

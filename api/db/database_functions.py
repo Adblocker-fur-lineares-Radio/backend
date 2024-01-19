@@ -499,42 +499,35 @@ def get_radios_and_update_by_currently_playing(data):
 
     radios = []
     for item in data:
-        title, station_id = item['title'], item['stationId']
-        currently_playing = title.split(': ')
-
-        if len(currently_playing) == 1:
-            currently_playing = title.split(' - ')
-
-        if len(currently_playing) == 1:
-            currently_playing.append('')
 
         stmt = (select(Radios)
-                .where(Radios.currently_playing != currently_playing[1])
-                .where(Radios.current_interpret != currently_playing[0])
-                .where(Radios.station_id == station_id))
+                .where(Radios.currently_playing != item['song'])
+                .where(Radios.current_interpret != item['interpret'])
+                .where(Radios.station_id == item['station_id']))
         result = session.first(stmt)
 
         if result is not None:
             radios.append(result)
 
+        # TODO fix here
         latest_played_song = session.first((select(RadioMetadata)
-                                            .where(RadioMetadata.station_id == station_id)
+                                            .where(RadioMetadata.station_id == item['station_id'])
                                             .order_by(RadioMetadata.id.desc())))
 
         if (latest_played_song is None or
-                latest_played_song.title != currently_playing[1] and
-                latest_played_song.interpret != currently_playing[0]):
-            stmt2 = (insert(RadioMetadata).values(station_id=station_id,
-                                                  title=currently_playing[1],
-                                                  interpret=currently_playing[0],
+                latest_played_song.title != item['song'] and
+                latest_played_song.interpret != item['interpret']):
+            stmt2 = (insert(RadioMetadata).values(station_id=item['station_id'],
+                                                  title=item['song'],
+                                                  interpret=item['interpret'],
                                                   timestamp=datetime.now()))
             session.execute(stmt2)
 
-            csv_logging_write([item['stationId'], currently_playing[0], currently_playing[1]], 'metadata.csv')
+            csv_logging_write([item['station_id'], item['interpret'], item['song']], 'metadata.csv')
 
-        stmt3 = update(Radios).where(Radios.station_id == station_id).values(
-            current_interpret=currently_playing[0],
-            currently_playing=currently_playing[1])
+        stmt3 = update(Radios).where(Radios.station_id == item['station_id']).values(
+            current_interpret=item['interpret'],
+            currently_playing=item['song'])
         session.execute(stmt3)
     return radios
 
@@ -551,11 +544,10 @@ def set_radio_status_to_music(radio_id):
     session.execute(stmt)
 
 
-def set_radio_ad_until(radio_id, minute):
-    if minute >= 60:
-        minute = minute - 60
-    session = get_current_session()
-    stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=minute)
+def set_radio_ad_until(radio_id, timestamp):
+    # FIXME timestamp could be evaluated by this function
+    session = current_session.get()
+    stmt = update(Radios).where(Radios.id == radio_id).values(ad_until=timestamp)
     session.execute(stmt)
 
 

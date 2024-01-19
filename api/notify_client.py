@@ -70,22 +70,53 @@ def analyse_radio_stream(connections):
         time.sleep(sleep_time * 60 - int(time.strftime('%S', time.localtime())) + 1)
 
 
+def split_song_and_interpret(title):
+    currently_playing = title.split(': ')
+
+    if len(currently_playing) == 1:
+        currently_playing = title.split(' - ')
+
+    if len(currently_playing) == 1:
+        currently_playing.insert(0, '')
+
+    return {
+        'song': currently_playing[1],
+        'interpret': currently_playing[0],
+    }
+
+
 def update_metadata(radios):
     """
     Updates the current song of the radios with the metadata from radio.net
     :param radios: List of all radios
     :return: the radios, where a new song is playing
     """
-    url = "https://prod.radio-api.net/stations/now-playing?stationIds="
 
-    if not radios:
-        url += "None"
-    else:
-        url += ','.join(radio.station_id for radio in radios)
+    api1_radios = [radio.station_id for radio in radios if radio.metadata_api == 1]
+    api2_radios = [radio.station_id for radio in radios if radio.metadata_api == 2]
+    metadatas = []
 
-    response = requests.get(url)
-    data = response.json()
-    need_update = get_radios_and_update_by_currently_playing(data)
+    # radio.de API
+    if len(api1_radios):
+        url = "https://prod.radio-api.net/stations/now-playing?stationIds="
+        url += ','.join(radio for radio in api1_radios)
+        response = requests.get(url).json()
+        metadatas.extend({
+            'station_id': radio['stationId'],
+            **split_song_and_interpret(radio['title'])
+        } for radio in response)
+
+    # nrwlokalradios API
+    for radio in api2_radios:
+        url = f"https://api-prod.nrwlokalradios.com/playlist/current?station={radio}"
+        response = requests.get(url).json()
+        metadatas.append({
+             'station_id': response['station_id'],
+             'song': response['title'],
+             'interpret': response['artist']
+         })
+
+    need_update = get_radios_and_update_by_currently_playing(metadatas)
     return need_update
 
 

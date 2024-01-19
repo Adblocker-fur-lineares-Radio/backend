@@ -56,7 +56,7 @@ def search(connection_id):
         'type': 'search_update',
         'radios': serialize(radios),
         'remaining_updates': remaining_updates
-    })
+    }, default=str)
 
 
 def search_update_request(client, connection_id, req):
