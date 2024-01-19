@@ -160,9 +160,8 @@ def fingerprint(job_queue, action_queue, confidence_threshold):
     djv = Dejavu(config)
     while True:
         radio, filename = job_queue.get()
-        # logger.info(f"analysing chunk for radio {radio.name}")
         try:
-            if radio.ad_until and radio.ad_until <= datetime.datetime.now().minute:
+            if radio.ad_until and radio.ad_until <= datetime.now():
                 action_queue.put(("end_of_ad_artificial", radio))
 
             elif radio.ad_until is None or radio.ad_duration == 0:
@@ -185,13 +184,6 @@ def fingerprint(job_queue, action_queue, confidence_threshold):
         finally:
             job_queue.task_done()
             os.remove(filename)
-
-
-# def check_artificial_end_regularly(interval_seconds, radios, action_queue):
-#     while True:
-#         for radio in radios:
-#             action_queue.put(("check_artificial_end", radio.name))
-#         sleep(interval_seconds)
 
 
 def start_fingerprint(connections):
@@ -219,9 +211,4 @@ def start_fingerprint(connections):
     action_thread = threading.Thread(target=action_handler, args=(action_queue, connections))
     action_thread.start()
 
-    # # check every minute
-    # action_end_check_thread = threading.Thread(target=check_artificial_end_regularly, args=(radios, 60, action_queue))
-    # action_end_check_thread.start()
-
-    # return [*recorders, *workers, action_thread, action_end_check_thread]
     return [*recorders, *workers, action_thread]
