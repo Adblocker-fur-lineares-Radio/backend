@@ -59,7 +59,7 @@ def radio_stream_event(connection_id):
         'type': 'radio_stream_event',
         'switch_to': serialize(radio),
         'buffer': CLIENT_BUFFER
-    })
+    }, default=str)
 
 
 def radio_update_event(radio_id):
