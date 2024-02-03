@@ -9,15 +9,15 @@ from urllib.request import urlopen, Request
 from dejavu.recognize import FileRecognizer
 from dejavu import Dejavu
 
-from api.configs import FINGERPRINT_MYSQL_HOST, FINGERPRINT_MYSQL_USER, FINGERPRINT_MYSQL_PASSWORD, \
+from src.configs import FINGERPRINT_MYSQL_HOST, FINGERPRINT_MYSQL_USER, FINGERPRINT_MYSQL_PASSWORD, \
     FINGERPRINT_MYSQL_DB, FINGERPRINT_SKIP_TIME_AFTER_AD_START, STREAM_AUTO_RESTART, AD_FALLBACK_TIMEOUT, \
     CONFIDENCE_THRESHOLD, FINGERPRINT_WORKER_THREAD_COUNT, PIECE_OVERLAP, PIECE_DURATION, STREAM_TIMEOUT, \
     FINGERPRINT_PIECE_MIN_SIZE, FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END
-from logging_config import csv_logging_write
-from api.db.database_functions import (get_all_radios, get_radio_by_name, set_radio_status_to_music,
+from src.api.client_notification import notify_client_stream_guidance, notify_client_search_update
+from src.db.database_functions import (get_all_radios, get_radio_by_name, set_radio_status_to_music,
                                        reset_radio_ad_until, set_radio_ad_until, set_radio_status_to_ad)
-from api.notify_client import notify_client_stream_guidance, notify_client_search_update
-from api.db.db_helpers import NewTransaction, STATUS
+from src.db.db_helpers import NewTransaction, STATUS
+from src.logging_config import csv_logging_write
 
 logger = logging.getLogger("Finger.py")
 
@@ -42,7 +42,7 @@ class FilenameInfo:
             self.radio_name = parts[0]
             self.status = parts[1]
             self.type = parts[2]
-        except Exception as e:
+        except Exception:
             raise f"Fingerprinted filename {filename} has an incorrect format"
 
 

@@ -27,6 +27,7 @@ def env_timespan(key):
     spans = value.strip().split(' ')
     return sum(int(parse_timespan(span)) for span in spans)
 
+
 def env_size(key):
     return parse_size(get_env(key))
 

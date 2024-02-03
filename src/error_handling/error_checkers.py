@@ -1,5 +1,5 @@
-from api.db.database_functions import radios_existing
-from api.error_handling.error_classes import Error
+from src.db.database_functions import radios_existing
+from src.error_handling.error_classes import Error
 
 
 def get_or_raise(kv, key):

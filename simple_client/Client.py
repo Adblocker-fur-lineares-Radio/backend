@@ -12,9 +12,6 @@ address = "ws://185.233.107.253:5000/api"
 def search_request(requested_updates=1):
     """
     Look up ServerAPI Documentation (Google Drive)
-    @param query: Contains Search-textS
-    @param filter_ids: Contains preferred Radios
-    @param filter_without_ads: bool, if you want ads or not
     @param requested_updates: Number of follow-up updates expected
     @return: json-string
     """
@@ -57,7 +54,7 @@ def format_radio(radio, with_padding=True):
     return f"({radio['id']}) {name}: {'(' + radio['status_label'] + ')':<10} {radio['current_interpret']} - {radio['currently_playing']}"
 
 
-async def StartClient():
+async def start_client():
     """
     Starts Client -> connect to server -> asks for radio -> play radio -> permanently polling for update
     @return: returns only on Error
@@ -130,5 +127,5 @@ async def StartClient():
                 pass
 
 if __name__ == '__main__':
-    asyncio.run(StartClient())
+    asyncio.run(start_client())
 

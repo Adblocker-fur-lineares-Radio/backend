@@ -5,7 +5,7 @@ import threading
 from sqlalchemy import inspect
 from sqlalchemy.orm import sessionmaker
 
-from api.db import create_and_connect_to_db
+from src.db import create_and_connect_to_db
 import contextvars
 
 logger = logging.getLogger("db_helpers.py")

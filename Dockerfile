@@ -27,11 +27,11 @@ RUN pip install -r requirements.txt
 
 
 
-#COPY api api
-COPY Jingles/AD_SameLenghtJingles AD_SameLenghtJingles
-COPY database database
+COPY src src
+COPY fingerprint_audio_files/AD_SameLenghtJingles AD_SameLenghtJingles
+COPY src/db/inserts database
 
 EXPOSE 5000
 
 #CMD ["flask", "run"]
-CMD ["python3", "api/main.py"]
+CMD ["python3", "src/main.py"]

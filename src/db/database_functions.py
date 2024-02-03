@@ -3,10 +3,10 @@ import logging
 from datetime import datetime
 
 from sqlalchemy import *
-from api.db.db_helpers import STATUS, helper_get_allowed_states, current_session, serialize_row
-from api.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
+from src.db.db_helpers import STATUS, helper_get_allowed_states, current_session, serialize_row
+from src.db.models import Radios, Connections, ConnectionSearchFavorites, ConnectionPreferredRadios, \
     RadioAdTime, RadioMetadata, RadioStates
-from api.logging_config import configure_logging, csv_logging_write
+from src.logging_config import configure_logging, csv_logging_write
 
 configure_logging()
 logger = logging.getLogger("database_functions.py")
@@ -17,7 +17,6 @@ logger = logging.getLogger("database_functions.py")
 def get_radio_by_id(radio_id):
     """
     Queries DB for radio by specified id
-    :param session: the session to use
     :param radio_id: the radio_id to be filtered by
     :return: the Query result as a row
     """
@@ -378,7 +377,6 @@ def update_preferences_for_connection(connection_id, preferred_radios=None, pref
     Updates the DB for user preferences for the specified connection
     @param connection_id: the specified connection
     @param preferred_radios: the users preferred radios
-    @param preferred_genres: the users preferred genres
     @param preference_ad: the users preference on ads
     @param preference_talk: the users preference on talk
     @param preference_news: the users preference on news
@@ -438,12 +436,14 @@ def get_radios_that_need_switch_by_time_and_update(now_min):
     ad_check = and_(hour_check, minute_check)
     current_status_is_ad = Radios.status_id == STATUS['ad']
 
-    stmt = (select(Radios)
-    .join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
-    .where(xor_(
-        ad_check,
-        current_status_is_ad)
-    ))
+    stmt = (
+        select(Radios)
+        .join(RadioAdTime, RadioAdTime.radio_id == Radios.id)
+        .where(xor_(
+            ad_check,
+            current_status_is_ad)
+        )
+    )
     switch_radios = session.all(stmt)
 
     # get next switch time
@@ -574,30 +574,3 @@ def get_ad_start_or_end(radio_name):
     else:
         return "-"
 '''
-
-
-def insert_init():
-    session = current_session.get()
-
-    stmt = select(func.count()).select_from(RadioStates)
-    cnt = session.scalar(stmt)
-    if cnt > 0:
-        return
-
-    with open("/app/database/states.json") as f:
-        session.execute(
-            insert(RadioStates),
-            json.load(f)
-        )
-
-    with open("/app/database/radios.json") as f:
-        session.execute(
-            insert(Radios),
-            json.load(f)
-        )
-
-    with open("/app/database/radio_ad_times.json") as f:
-        session.execute(
-            insert(RadioAdTime),
-            json.load(f)
-        )
