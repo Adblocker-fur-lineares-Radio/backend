@@ -14,6 +14,8 @@ def route_adtime_logs():
         </head>
         <body>
             <a href="/logs/adtimes">Aktualisieren</a><br />
+            <a href="/logs/backend">Backend Logs</a><br />
+            <a href="/">Radio Liste</a><br />
             <pre>{rows[0]}{nl.join(out)}</pre>
         </body>
     </html>
@@ -35,6 +37,8 @@ def route_backend_logs():
         </head>
         <body>
             <a href="/logs/backend">Aktualisieren</a><br />
+            <a href="/logs/adtimes">Adtime Logs</a><br />
+            <a href="/">Radio Liste</a><br />
             <pre>{nl.join(out)}</pre>
         </body>
     </html>

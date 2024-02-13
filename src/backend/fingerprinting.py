@@ -19,7 +19,7 @@ from src.db.database_functions import (get_all_radios, get_radio_by_name, set_ra
 from src.db.db_helpers import NewTransaction, STATUS
 from src.logging_config import csv_logging_write
 
-logger = logging.getLogger("Finger.py")
+logger = logging.getLogger("fingerprinting.py")
 
 config = {
     "database": {
@@ -132,7 +132,7 @@ def fingerprint(job_queue, confidence_threshold, connections):
                     notify_client_stream_guidance(connections, radio.id)
                     notify_client_search_update(connections)
                     start_skip_time(radio_name, FINGERPRINT_SKIP_TIME_AFTER_ARTIFICIAL_AD_END)
-                    logger.info(radio_name + ' artifical end of ad')
+                    # logger.info(radio_name + ' artifical end of ad')
                     csv_logging_write([radio_name, "end_of_ad_artificial"], "adtime.csv")
 
                 elif radio.ad_until is None or radio.ad_duration == 0:
@@ -157,10 +157,10 @@ def fingerprint(job_queue, confidence_threshold, connections):
                         notify_client_stream_guidance(connections, radio.id)
                         notify_client_search_update(connections)
 
-                        logger.info(radio_name + ": " + str(finger) +
-                                    f"\n{radio_name}: " +
-                                    f"{info.radio_name} - {info.status} - {info.type}" +
-                                    f", confidence = {finger['confidence']}")
+                        # logger.info(radio_name + ": " + str(finger) +
+                        #             f"\n{radio_name}: " +
+                        #             f"{info.radio_name} - {info.status} - {info.type}" +
+                        #             f", confidence = {finger['confidence']}")
             except Exception as e:
                 logger.error(f"Fingerprinting Error in {radio_name}: {e}")
             finally:

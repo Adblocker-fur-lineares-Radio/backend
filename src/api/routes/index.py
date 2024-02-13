@@ -50,6 +50,8 @@ def route_radio_list():
                 {radios}
             </table>
             <a href="/">Aktualisieren</a><br />
+            <a href="/logs/backend">Backend Logs</a><br />
+            <a href="/logs/adtimes">Adtime Logs</a><br />
         </body>
     </html>
     """
