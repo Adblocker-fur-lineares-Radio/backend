@@ -58,7 +58,7 @@ def get_all_radios():
     """
 
     session = current_session.get()
-    stmt = select(Radios)
+    stmt = select(Radios).order_by(Radios.id)
     return session.all(stmt)
 
 
