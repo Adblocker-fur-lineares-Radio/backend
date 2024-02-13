@@ -31,14 +31,13 @@ def route_endpoint(client, connections):
         try:
             raw = client.receive()
             data = json.loads(raw)
-            logger.info(f"got request '{data['type']}': {raw}")
 
             callee = mapping[data['type']]
             callee(client, connection_id, data)
 
         except JSONDecodeError:
             msg = Error('Request body is not json').to_response()
-            logger.info(f"Server sent: {msg}")
+            logger.error(f"Server sent error to client: {msg}")
             client.send(msg)
 
         except Error as e:
@@ -46,13 +45,12 @@ def route_endpoint(client, connections):
 
         except KeyError as e:
             msg = Error(f"Request body has incorrect json structure, couldn't find key '{e}'").to_response()
-            logger.error(f"Server sent: {msg}")
+            logger.error(f"Server sent error to client: {msg}")
             client.send(msg)
 
         except ConnectionClosed:
             with NewTransaction():
                 delete_connection_from_db(connection_id)
-            logger.error(f"Server closed connection to: {client}")
             del connections[connection_id]
             return
 
