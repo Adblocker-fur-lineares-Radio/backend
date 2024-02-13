@@ -27,6 +27,10 @@ def split_song_and_interpret(title):
     }
 
 
+def unscream(text):
+    return " ".join(w.capitalize() for w in text.split(" "))
+
+
 def update_metadata(radios):
     """
     Updates the current song of the radios with the metadata from radio.net
@@ -54,8 +58,8 @@ def update_metadata(radios):
         response = requests.get(url).json()
         metadatas.append({
              'station_id': response['station_id'],
-             'song': response['title'],
-             'interpret': response['artist']
+             'song': unscream(response['title']),
+             'interpret': unscream(response['artist'])
          })
 
     need_update = get_radios_and_update_by_currently_playing(metadatas)
@@ -80,6 +84,7 @@ def metadata_processing(connections):
             time.sleep(15)
         except Exception as e:
             logger.error(f"Error in updating metadata: {e}")
+            time.sleep(15)
 
 
 def start_notifier(connections):
