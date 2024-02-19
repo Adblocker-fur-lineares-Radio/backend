@@ -53,7 +53,7 @@ Die Metadaten, welcher Song gerade abgespielt wird, holen wir uns von der nicht 
 * Projekt von GitLab klonen
 * In das geklonte Verzeichnis hineingehen
 * Den Server über Docker starten:
-*        $ docker compose up -d
+`$ docker compose up -d`
 * Der Server wird dann auf dem Port 8080 gehostet.
 
 ## Server konfigurieren
