@@ -1,0 +1,9 @@
+humanfriendly
+SQLAlchemy
+psycopg[binary]
+python-dotenv
+flask
+flask_sock
+requests
+pytz
+git+https://github.com/yunpengn/dejavu.git

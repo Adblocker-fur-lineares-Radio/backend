@@ -1,0 +1,52 @@
+services:
+  server:
+    build: .
+    restart: always
+    depends_on:
+      core-db:
+        condition: service_healthy
+      fingerprint-db:
+        condition: service_healthy
+    ports:
+      - 0.0.0.0:${PORT}:5000
+    volumes:
+      - ./api:/app/api
+      - ./logs:/logs
+
+    env_file:
+      - .env
+
+  core-db:
+    image: postgres:14.10
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "adblock_radio" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      PGUSER: ${CORE_POSTGRES_USER}
+      POSTGRES_USER: ${CORE_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CORE_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CORE_POSTGRES_DB}
+    volumes:
+      - core-db-data:/var/lib/postgresql/data
+
+  fingerprint-db:
+    image: mysql:8.2
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 5s
+      interval: 30s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - fingerprint-db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${FINGERPRINT_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${FINGERPRINT_MYSQL_DB}
+
+volumes:
+  fingerprint-db-data:
+  core-db-data:

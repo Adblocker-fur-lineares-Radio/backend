@@ -1,0 +1,37 @@
+[
+  {
+    "radio_id": 1,
+    "ad_start_time": 53,
+    "ad_end_time": 3,
+    "ad_transmission_start": 6,
+    "ad_transmission_end": 20
+  },
+  {
+    "radio_id": 2,
+    "ad_start_time": 27,
+    "ad_end_time": 33,
+    "ad_transmission_start": 6,
+    "ad_transmission_end": 20
+  },
+  {
+    "radio_id": 2,
+    "ad_start_time": 53,
+    "ad_end_time": 3,
+    "ad_transmission_start": 6,
+    "ad_transmission_end": 20
+  },
+  {
+    "radio_id": 6,
+    "ad_start_time": 27,
+    "ad_end_time": 33,
+    "ad_transmission_start": 6,
+    "ad_transmission_end": 20
+  },
+  {
+    "radio_id": 6,
+    "ad_start_time": 53,
+    "ad_end_time": 3,
+    "ad_transmission_start": 6,
+    "ad_transmission_end": 20
+  }
+]

@@ -1,0 +1,6 @@
+[
+    {"id": 1, "label": "Werbung"},
+    {"id": 2, "label": "Musik"},
+    {"id": 3, "label": "Nachrichten"},
+    {"id": 4, "label": null}
+]

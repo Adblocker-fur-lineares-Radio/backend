@@ -1,0 +1,5 @@
+v1.zip
+.idea/
+src/__pycache__/
+src/db/__pycache__/
+logs/
